@@ -43,9 +43,11 @@ class ViewController: UIViewController {
 
     private lazy var verticalSlider: UISlider = {
         let slider = UISlider()
+        let screenHalfHeight = Float(UIScreen.main.bounds.height / 2)
         slider.value = 0
-        slider.minimumValue = -200
-        slider.maximumValue = 200
+        slider.maximumValue = screenHalfHeight - 125
+        slider.minimumValue = -screenHalfHeight + 125
+        slider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
         return slider
     }()
 
@@ -58,15 +60,14 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, saveButton, shareButton)
+        view.addSubviews(backgroundImageView, calendarView, saveButton, shareButton, verticalSlider)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
 
         calendarView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-//            $0.size.equalTo(CGSize(width: 300, height: 250))    // min 170x180
+            $0.centerY.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(48)
             $0.height.equalTo(250)
         }
@@ -78,6 +79,11 @@ class ViewController: UIViewController {
         shareButton.snp.makeConstraints {
             $0.top.size.equalTo(saveButton)
             $0.trailing.equalTo(saveButton.snp.leading).offset(-16)
+        }
+        verticalSlider.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.horizontalEdges.equalToSuperview().inset(48)
+            $0.top.equalTo(saveButton.snp.bottom).offset(16)
         }
     }
 
@@ -100,6 +106,15 @@ class ViewController: UIViewController {
         }
         viewsToHide.forEach { $0.isHidden = false }
         return image
+    }
+
+    @objc
+    private func sliderValueChanged(_ sender: UISlider) {
+        calendarView.snp.remakeConstraints {
+            $0.centerY.equalToSuperview().offset(sender.value)
+            $0.horizontalEdges.equalToSuperview().inset(48)
+            $0.height.equalTo(250)
+        }
     }
 
     @objc
