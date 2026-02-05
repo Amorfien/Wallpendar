@@ -29,6 +29,24 @@ struct CalendarConfiguration {
         monthHeaderColor: .white,
         dayFontSize: 16
     )
+
+    init(monthToDisplay: MonthDisplayMode,
+         backgroundColor: UIColor = .black,
+         backgroundAlpha: CGFloat = 0.5,
+         dayTextColor: UIColor = .white,
+         weekendTextColor: UIColor = .systemRed,
+         weekdayHeaderColor: UIColor = .lightGray,
+         monthHeaderColor: UIColor = .white,
+         dayFontSize: CGFloat = 16) {
+        self.monthToDisplay = monthToDisplay
+        self.backgroundColor = backgroundColor
+        self.backgroundAlpha = backgroundAlpha
+        self.dayTextColor = dayTextColor
+        self.weekendTextColor = weekendTextColor
+        self.weekdayHeaderColor = weekdayHeaderColor
+        self.monthHeaderColor = monthHeaderColor
+        self.dayFontSize = dayFontSize
+    }
 }
 
 class MonthCalendarView: UIView {
@@ -85,9 +103,29 @@ class MonthCalendarView: UIView {
         super.init(coder: coder)
         setupView()
     }
-    
+
+    // MARK: - Public Methods
+    func changeMonth(increase: Bool) {
+        // Обновляем месяц в dateComponents
+        let calendar = Calendar.current
+        guard let currentDate = calendar.date(from: dateComponents) else { return }
+
+        // Вычисляем новую дату
+        var newDateComponents = DateComponents()
+        newDateComponents.month = increase ? 1 : -1
+
+        guard let newDate = calendar.date(byAdding: newDateComponents, to: currentDate) else { return }
+
+        // Обновляем dateComponents
+        dateComponents.year = calendar.component(.year, from: newDate)
+        dateComponents.month = calendar.component(.month, from: newDate)
+        dateComponents.day = 1
+
+        // Перерисовываем календарь
+        reloadCalendar()
+    }
+
     // MARK: - Настройка
-    
     private func setupView() {
         self.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(configuration.backgroundAlpha)
@@ -101,6 +139,26 @@ class MonthCalendarView: UIView {
             $0.edges.equalToSuperview().inset(16)
         }
 
+        setupCalendarStructure()
+        updateCalendar()
+    }
+
+    private func reloadCalendar() {
+        // Удаляем все вложенные вьюхи из mainStackView
+        mainStackView.arrangedSubviews.forEach {
+            mainStackView.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+
+        // Очищаем массив лейблов
+        dayLabels.removeAll()
+
+        // Создаем заново структуру
+        setupCalendarStructure()
+        updateCalendar()
+    }
+
+    private func setupCalendarStructure() {
         // Добавляем заголовок месяца
         let headerContainer = UIView()
         headerContainer.addSubview(monthHeaderLabel)
@@ -112,14 +170,12 @@ class MonthCalendarView: UIView {
         }
 
         mainStackView.addArrangedSubview(headerContainer)
-        
+
         // Добавляем строку с днями недели
         let weekdaysStack = createWeekdaysRow()
         mainStackView.addArrangedSubview(weekdaysStack)
-        
-        updateCalendar()
     }
-    
+
     private func createWeekdaysRow() -> UIStackView {
         let stack = UIStackView()
         stack.axis = .horizontal

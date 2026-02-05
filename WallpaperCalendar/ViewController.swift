@@ -11,6 +11,8 @@ import Photos
 
 class ViewController: UIViewController {
 
+    private var savedValue: Double = 0
+
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: .snegir)
         imageView.contentMode = .scaleAspectFill
@@ -29,9 +31,9 @@ class ViewController: UIViewController {
 
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Сохранить обои", for: .normal)
-        button.backgroundColor = .systemBlue.withAlphaComponent(0.8)
-        button.setTitleColor(.white, for: .normal)
+        button.setImage(.init(systemName: "square.and.arrow.down"), for: .normal)
+        button.backgroundColor = .black.withAlphaComponent(0.2)
+        button.tintColor = .white
         button.layer.cornerRadius = 12
         button.layer.borderWidth = 0.5
         button.layer.borderColor = UIColor.white.cgColor
@@ -42,7 +44,7 @@ class ViewController: UIViewController {
     private lazy var shareButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(.init(systemName: "square.and.arrow.up"), for: .normal)
-        button.backgroundColor = .systemBlue.withAlphaComponent(0.8)
+        button.backgroundColor = .black.withAlphaComponent(0.2)
         button.tintColor = .white
         button.layer.cornerRadius = 12
         button.layer.borderWidth = 0.5
@@ -51,7 +53,7 @@ class ViewController: UIViewController {
         return button
     }()
 
-    private let calendarView = MonthCalendarView()
+    private var calendarView = MonthCalendarView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,7 +62,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, saveButton, shareButton)
+        view.addSubviews(backgroundImageView, calendarView, stepper, saveButton, shareButton)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -73,11 +75,17 @@ class ViewController: UIViewController {
             $0.height.equalTo(250)
         }
 
-        saveButton.snp.makeConstraints {
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(12)
+        stepper.snp.makeConstraints {
+            $0.width.equalTo(100)
+            $0.height.equalTo(32)
+            $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.centerX.equalToSuperview()
-            $0.width.equalTo(200)
-            $0.height.equalTo(44)
+        }
+
+        saveButton.snp.makeConstraints {
+            $0.leading.equalTo(stepper.snp.trailing).offset(16)
+            $0.centerY.equalTo(stepper)
+            $0.size.equalTo(44)
         }
         shareButton.snp.makeConstraints {
             $0.top.bottom.equalTo(saveButton)
@@ -87,7 +95,7 @@ class ViewController: UIViewController {
     }
 
     private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, shareButton]
+        let viewsToHide = [saveButton, shareButton, stepper]
         viewsToHide.forEach {
             $0.alpha = 0
             $0.isHidden = true
@@ -109,7 +117,8 @@ class ViewController: UIViewController {
 
     @objc
     private func stepperValueChanged(_ sender: UIStepper) {
-
+        calendarView.changeMonth(increase: sender.value > savedValue)
+        savedValue = sender.value
     }
 
     @objc
