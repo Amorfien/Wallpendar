@@ -6,7 +6,8 @@
 //
 
 
-//enum MonthDisplayMode {
-//    case currentMonth    // текущий месяц
-//    case nextMonth       // следующий месяц
-//}
+enum MonthDisplayMode {
+    case current
+    case next
+    case custom (month: Int, year: Int)
+}

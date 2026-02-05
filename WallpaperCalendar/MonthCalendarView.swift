@@ -10,8 +10,7 @@ import UIKit
 import SnapKit
 
 struct CalendarConfiguration {
-    let month: Int
-    let year: Int
+    let monthToDisplay: MonthDisplayMode
     let backgroundColor: UIColor
     let backgroundAlpha: CGFloat
     let dayTextColor: UIColor
@@ -21,8 +20,7 @@ struct CalendarConfiguration {
     let dayFontSize: CGFloat
 
     static let initial = Self.init(
-        month: 2,//Calendar.current.component(.month, from: .now).advanced(by: 1),
-        year: 2027,//Calendar.current.component(.year, from: .now),
+        monthToDisplay: .current,
         backgroundColor: .black,
         backgroundAlpha: 0.5,
         dayTextColor: .white,
@@ -38,6 +36,23 @@ class MonthCalendarView: UIView {
     // MARK: - Приватные свойства
 
     private var configuration: CalendarConfiguration
+
+    private lazy var dateComponents: DateComponents = {
+        var dateComponents = DateComponents()
+        switch configuration.monthToDisplay {
+        case .current:
+            dateComponents.year = Calendar.current.component(.year, from: .now)
+            dateComponents.month = Calendar.current.component(.month, from: .now)
+        case .next:
+            dateComponents.year = Calendar.current.component(.year, from: .now)
+            dateComponents.month = Calendar.current.component(.month, from: .now).advanced(by: 1)
+        case .custom(let year, let month):
+            dateComponents.year = year
+            dateComponents.month = month
+        }
+        dateComponents.day = 1
+        return dateComponents
+    }()
 
     private let mainStackView: UIStackView = {
         let stack = UIStackView()
@@ -78,12 +93,10 @@ class MonthCalendarView: UIView {
             .withAlphaComponent(configuration.backgroundAlpha)
         self.layer.cornerRadius = 16
         self.layer.borderWidth = 2
-        self.layer.borderColor = UIColor.lightGray.cgColor
+        self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         self.clipsToBounds = true
 
         addSubview(mainStackView)
-            mainStackView.layer.borderWidth = 1
-            mainStackView.layer.borderColor = UIColor.yellow.cgColor
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -103,12 +116,6 @@ class MonthCalendarView: UIView {
         // Добавляем строку с днями недели
         let weekdaysStack = createWeekdaysRow()
         mainStackView.addArrangedSubview(weekdaysStack)
-        
-        // Добавляем 6 строк для чисел (6 недель максимум)
-        for _ in 0..<6 {
-            let weekStack = createWeekRow()
-            mainStackView.addArrangedSubview(weekStack)
-        }
         
         updateCalendar()
     }
@@ -157,51 +164,24 @@ class MonthCalendarView: UIView {
         dateFormatter.locale = Locale(identifier: "ru_RU")
         dateFormatter.dateFormat = "LLLL yyyy"
         
-        var dateComponents = DateComponents()
-        dateComponents.year = configuration.year
-        dateComponents.month = configuration.month
-        dateComponents.day = 1
-        
         if let date = Calendar.current.date(from: dateComponents) {
             monthHeaderLabel.text = dateFormatter.string(from: date).capitalized
         }
-        
-        // Очищаем все labels
-        dayLabels.forEach { $0.text = "" }
-        
+
         // Получаем информацию о месяце
         guard let firstDayOfMonth = getFirstDayOfMonth(),
               let numberOfDays = getNumberOfDaysInMonth() else {
             return
         }
-        
-        // Определяем день недели для 1-го числа месяца (1 = понедельник, 7 = воскресенье)
-        let firstWeekday = Calendar.current.component(.weekday, from: firstDayOfMonth)
-        // Конвертируем: 1=воскр -> 7, 2=пн -> 1, 3=вт -> 2, ... 7=суб -> 6
-        let startOffset: Int
-        if firstWeekday == 1 { // воскресенье
-            startOffset = 6
-        } else {
-            startOffset = firstWeekday - 2
-        }
-        
-        // Заполняем числами
-        for day in 1...numberOfDays {
-            let position = startOffset + (day - 1)
-            if position < dayLabels.count {
-                dayLabels[position].text = "\(day)"
-            }
-        }
+
+        // Создаем недели с числами
+        createWeekRows(for: firstDayOfMonth, numberOfDays: numberOfDays)
         
         // Обновляем цвета для выходных
         updateDayColors()
     }
     
     private func getFirstDayOfMonth() -> Date? {
-        var dateComponents = DateComponents()
-        dateComponents.year = configuration.year
-        dateComponents.month = configuration.month
-        dateComponents.day = 1
         return Calendar.current.date(from: dateComponents)
     }
     
@@ -209,7 +189,36 @@ class MonthCalendarView: UIView {
         guard let date = getFirstDayOfMonth() else { return nil }
         return Calendar.current.range(of: .day, in: .month, for: date)?.count
     }
-    
+
+    private func createWeekRows(for firstDayOfMonth: Date, numberOfDays: Int) {
+        // Определяем день недели для 1-го числа месяца
+        let firstWeekday = Calendar.current.component(.weekday, from: firstDayOfMonth)
+        let startOffset = firstWeekday == 1 ? 6 : firstWeekday - 2
+
+        // Рассчитываем необходимое количество недель
+        let totalCellsNeeded = startOffset + numberOfDays
+        let weeksNeeded = Int(ceil(Double(totalCellsNeeded) / 7.0))
+
+        // Заполняем недели
+        for weekIndex in 0..<weeksNeeded {
+            let weekStack = createWeekRow()
+            mainStackView.addArrangedSubview(weekStack)
+
+            // Заполняем неделю числами
+            for dayIndex in 0..<7 {
+                let globalPosition = weekIndex * 7 + dayIndex
+                if let label = weekStack.arrangedSubviews[dayIndex] as? UILabel {
+                    if globalPosition >= startOffset && globalPosition < startOffset + numberOfDays {
+                        let dayNumber = globalPosition - startOffset + 1
+                        label.text = "\(dayNumber)"
+                    } else {
+                        label.text = ""
+                    }
+                }
+            }
+        }
+    }
+
     private func updateDayColors() {
         // Определяем первый день месяца для расчета позиций
         guard let firstDayOfMonth = getFirstDayOfMonth() else { return }
