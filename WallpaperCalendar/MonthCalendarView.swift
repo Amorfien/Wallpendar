@@ -55,6 +55,8 @@ class MonthCalendarView: UIView {
 
     private var configuration: CalendarConfiguration
 
+    private var savedValue: Double = 0
+
     private lazy var dateComponents: DateComponents = {
         var dateComponents = DateComponents()
         switch configuration.monthToDisplay {
@@ -86,7 +88,17 @@ class MonthCalendarView: UIView {
         label.textAlignment = .center
         return label
     }()
-    
+
+    lazy var stepper: UIStepper = {
+        let stepper = UIStepper()
+        stepper.value = 0
+        stepper.stepValue = 1
+        stepper.minimumValue = -1
+        stepper.maximumValue = 12
+        stepper.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .valueChanged)
+        return stepper
+    }()
+
     private var dayLabels: [UILabel] = []
     private let weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
     
@@ -134,9 +146,14 @@ class MonthCalendarView: UIView {
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         self.clipsToBounds = true
 
-        addSubview(mainStackView)
+        addSubviews(mainStackView, stepper)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
+        }
+
+        stepper.snp.makeConstraints {
+            $0.top.equalToSuperview()
+            $0.trailing.equalToSuperview()
         }
 
         setupCalendarStructure()
@@ -313,5 +330,11 @@ class MonthCalendarView: UIView {
     
     private func updateDayFonts() {
         dayLabels.forEach { $0.font = .systemFont(ofSize: configuration.dayFontSize) }
+    }
+
+    @objc
+    private func stepperValueChanged(_ sender: UIStepper) {
+        changeMonth(increase: sender.value > savedValue)
+        savedValue = sender.value
     }
 }

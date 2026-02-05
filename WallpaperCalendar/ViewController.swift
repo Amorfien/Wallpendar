@@ -11,22 +11,10 @@ import Photos
 
 class ViewController: UIViewController {
 
-    private var savedValue: Double = 0
-
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: .snegir)
         imageView.contentMode = .scaleAspectFill
         return imageView
-    }()
-
-    private lazy var stepper: UIStepper = {
-        let stepper = UIStepper()
-        stepper.value = 0
-        stepper.stepValue = 1
-        stepper.minimumValue = -1
-        stepper.maximumValue = 12
-        stepper.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .valueChanged)
-        return stepper
     }()
 
     private lazy var saveButton: UIButton = {
@@ -53,6 +41,14 @@ class ViewController: UIViewController {
         return button
     }()
 
+    private lazy var verticalSlider: UISlider = {
+        let slider = UISlider()
+        slider.value = 0
+        slider.minimumValue = -200
+        slider.maximumValue = 200
+        return slider
+    }()
+
     private var calendarView = MonthCalendarView()
 
     override func viewDidLoad() {
@@ -62,7 +58,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, stepper, saveButton, shareButton)
+        view.addSubviews(backgroundImageView, calendarView, saveButton, shareButton)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -75,27 +71,18 @@ class ViewController: UIViewController {
             $0.height.equalTo(250)
         }
 
-        stepper.snp.makeConstraints {
-            $0.width.equalTo(100)
-            $0.height.equalTo(32)
-            $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.centerX.equalToSuperview()
-        }
-
         saveButton.snp.makeConstraints {
-            $0.leading.equalTo(stepper.snp.trailing).offset(16)
-            $0.centerY.equalTo(stepper)
+            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
             $0.size.equalTo(44)
         }
         shareButton.snp.makeConstraints {
-            $0.top.bottom.equalTo(saveButton)
-            $0.leading.equalTo(saveButton.snp.trailing).offset(16)
-            $0.width.equalTo(44)
+            $0.top.size.equalTo(saveButton)
+            $0.trailing.equalTo(saveButton.snp.leading).offset(-16)
         }
     }
 
     private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, shareButton, stepper]
+        let viewsToHide = [saveButton, shareButton, calendarView.stepper]
         viewsToHide.forEach {
             $0.alpha = 0
             $0.isHidden = true
@@ -113,12 +100,6 @@ class ViewController: UIViewController {
         }
         viewsToHide.forEach { $0.isHidden = false }
         return image
-    }
-
-    @objc
-    private func stepperValueChanged(_ sender: UIStepper) {
-        calendarView.changeMonth(increase: sender.value > savedValue)
-        savedValue = sender.value
     }
 
     @objc
