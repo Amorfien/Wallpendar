@@ -11,13 +11,16 @@ import Photos
 
 class ViewController: UIViewController {
 
-    private var calendarHeight: Float = 250
-    private let screenHeight = Float(UIScreen.main.bounds.height)
-    private let screenWidth = Float(UIScreen.main.bounds.width)
+    private let apiManager = APIManager()
+    private var imageMode: ImageMode = .grayscale
 
-    private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: .snegir)
+    private var calendarHeight: Float = 250
+
+    private lazy var backgroundImageView: UIImageView = {
+        let imageView = UIImageView(image: R.Img.initialImages.randomElement())
         imageView.contentMode = .scaleAspectFill
+        imageView.isUserInteractionEnabled = true
+        imageView.addGestureRecognizer(tapGestureRecognizer)
         return imageView
     }()
 
@@ -33,9 +36,9 @@ class ViewController: UIViewController {
         return button
     }()
 
-    private lazy var verticalSlider: UISlider = {
-        let slider = UISlider()
-        let screenHalfHeight = screenHeight / 2
+    private lazy var verticalSlider: TransparentSlider = {
+        let slider = TransparentSlider()
+        let screenHalfHeight = R.Device.screenHeight / 2
         slider.value = 0
         slider.maximumValue = screenHalfHeight - (calendarHeight / 2)
         slider.minimumValue = -screenHalfHeight + (calendarHeight / 2)
@@ -48,6 +51,15 @@ class ViewController: UIViewController {
     }()
 
     private var calendarView = MonthCalendarView()
+
+    private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapGesture))
+
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,9 +87,9 @@ class ViewController: UIViewController {
 
         verticalSlider.snp.makeConstraints {
             $0.centerY.equalToSuperview()
-            $0.centerX.equalToSuperview().offset((-screenWidth / 2) + 49)
+            $0.centerX.equalToSuperview().offset((-R.Device.screenWidth / 2) + 49)
             let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.width ?? 56)
-            $0.width.equalTo(screenHeight + thumbSize - calendarHeight)
+            $0.width.equalTo(R.Device.screenHeight + thumbSize - calendarHeight)
         }
         verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
     }
@@ -126,6 +138,26 @@ class ViewController: UIViewController {
                     self.saveImageToPhotoLibrary(image)
                 } else {
                     self.showPermissionAlert()
+                }
+            }
+        }
+    }
+
+    @objc
+    private func tapGesture() {
+        apiManager.getImage(
+            width: R.Device.screenScale * R.Device.screenWidth,
+            height: R.Device.screenScale * R.Device.screenHeight,
+            mode: imageMode) { result in
+            switch result {
+            case .success(let data):
+                DispatchQueue.main.async { [weak self] in
+                    self?.backgroundImageView.image = UIImage(data: data)
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+                DispatchQueue.main.async { [weak self] in
+                    self?.backgroundImageView.image = R.Img.initialImages.randomElement()
                 }
             }
         }

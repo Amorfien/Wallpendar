@@ -10,7 +10,6 @@ import UIKit
 import SnapKit
 
 struct CalendarConfiguration {
-    let monthToDisplay: MonthDisplayMode
     let backgroundColor: UIColor
     let backgroundAlpha: CGFloat
     let dayTextColor: UIColor
@@ -20,7 +19,6 @@ struct CalendarConfiguration {
     let dayFontSize: CGFloat
 
     static let initial = Self.init(
-        monthToDisplay: .current,
         backgroundColor: .black,
         backgroundAlpha: 0.5,
         dayTextColor: .white,
@@ -30,15 +28,13 @@ struct CalendarConfiguration {
         dayFontSize: 16
     )
 
-    init(monthToDisplay: MonthDisplayMode,
-         backgroundColor: UIColor = .black,
+    init(backgroundColor: UIColor = .black,
          backgroundAlpha: CGFloat = 0.5,
          dayTextColor: UIColor = .white,
          weekendTextColor: UIColor = .systemRed,
          weekdayHeaderColor: UIColor = .lightGray,
          monthHeaderColor: UIColor = .white,
          dayFontSize: CGFloat = 16) {
-        self.monthToDisplay = monthToDisplay
         self.backgroundColor = backgroundColor
         self.backgroundAlpha = backgroundAlpha
         self.dayTextColor = dayTextColor
@@ -59,17 +55,8 @@ class MonthCalendarView: UIView {
 
     private lazy var dateComponents: DateComponents = {
         var dateComponents = DateComponents()
-        switch configuration.monthToDisplay {
-        case .current:
-            dateComponents.year = Calendar.current.component(.year, from: .now)
-            dateComponents.month = Calendar.current.component(.month, from: .now)
-        case .next:
-            dateComponents.year = Calendar.current.component(.year, from: .now)
-            dateComponents.month = Calendar.current.component(.month, from: .now).advanced(by: 1)
-        case .custom(let year, let month):
-            dateComponents.year = year
-            dateComponents.month = month
-        }
+        dateComponents.year = Calendar.current.component(.year, from: .now)
+        dateComponents.month = Calendar.current.component(.month, from: .now)
         dateComponents.day = 1
         return dateComponents
     }()
