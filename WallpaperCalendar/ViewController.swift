@@ -11,6 +11,9 @@ import Photos
 
 class ViewController: UIViewController {
 
+    private var calendarHeight: Float = 250
+    private let screenHeight = Float(UIScreen.main.bounds.height)
+
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: .snegir)
         imageView.contentMode = .scaleAspectFill
@@ -19,7 +22,7 @@ class ViewController: UIViewController {
 
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.init(systemName: "square.and.arrow.down"), for: .normal)
+        button.setImage(.init(systemName: "photo.on.rectangle.angled"), for: .normal)
         button.backgroundColor = .black.withAlphaComponent(0.2)
         button.tintColor = .white
         button.layer.cornerRadius = 12
@@ -29,25 +32,15 @@ class ViewController: UIViewController {
         return button
     }()
 
-    private lazy var shareButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(.init(systemName: "square.and.arrow.up"), for: .normal)
-        button.backgroundColor = .black.withAlphaComponent(0.2)
-        button.tintColor = .white
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 0.5
-        button.layer.borderColor = UIColor.white.cgColor
-        button.addTarget(self, action: #selector(shareImage), for: .touchUpInside)
-        return button
-    }()
-
     private lazy var verticalSlider: UISlider = {
         let slider = UISlider()
-        let screenHalfHeight = Float(UIScreen.main.bounds.height / 2)
+        let screenHalfHeight = screenHeight / 2
         slider.value = 0
-        slider.maximumValue = screenHalfHeight - 125
-        slider.minimumValue = -screenHalfHeight + 125
+        slider.maximumValue = screenHalfHeight - (calendarHeight / 2)
+        slider.minimumValue = -screenHalfHeight + (calendarHeight / 2)
         slider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
+        slider.tintColor = .clear
+        slider.thumbTintColor = .white.withAlphaComponent(0.1)
         return slider
     }()
 
@@ -60,7 +53,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, saveButton, shareButton, verticalSlider)
+        view.addSubviews(backgroundImageView, calendarView, saveButton, verticalSlider)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -69,26 +62,23 @@ class ViewController: UIViewController {
         calendarView.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.horizontalEdges.equalToSuperview().inset(48)
-            $0.height.equalTo(250)
+            $0.height.equalTo(calendarHeight)
         }
 
         saveButton.snp.makeConstraints {
-            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
+            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(12)
             $0.size.equalTo(44)
         }
-        shareButton.snp.makeConstraints {
-            $0.top.size.equalTo(saveButton)
-            $0.trailing.equalTo(saveButton.snp.leading).offset(-16)
-        }
+
+        verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
         verticalSlider.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.horizontalEdges.equalToSuperview().inset(48)
-            $0.top.equalTo(saveButton.snp.bottom).offset(16)
+            $0.center.equalToSuperview()
+            $0.width.equalTo(screenHeight + 40 - calendarHeight)
         }
     }
 
     private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, shareButton, calendarView.stepper]
+        let viewsToHide = [saveButton, /*shareButton,*/ verticalSlider, calendarView.stepper]
         viewsToHide.forEach {
             $0.alpha = 0
             $0.isHidden = true
@@ -113,7 +103,7 @@ class ViewController: UIViewController {
         calendarView.snp.remakeConstraints {
             $0.centerY.equalToSuperview().offset(sender.value)
             $0.horizontalEdges.equalToSuperview().inset(48)
-            $0.height.equalTo(250)
+            $0.height.equalTo(calendarHeight)
         }
     }
 
@@ -134,15 +124,6 @@ class ViewController: UIViewController {
                 }
             }
         }
-    }
-
-    @objc
-    private func shareImage() {
-        let image = getWallpaper()
-
-        let activityVC = UIActivityViewController(activityItems: [image], applicationActivities: nil)
-        activityVC.popoverPresentationController?.sourceView = saveButton
-        present(activityVC, animated: true)
     }
 
     private func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
@@ -199,24 +180,6 @@ class ViewController: UIViewController {
             },
             secondaryAction: UIAlertAction(title: "Отмена", style: .cancel)
         )
-    }
-
-    private func showAlert(title: String, message: String,
-                          primaryAction: UIAlertAction? = nil,
-                          secondaryAction: UIAlertAction? = nil) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-
-        if let primaryAction = primaryAction {
-            alert.addAction(primaryAction)
-        }
-
-        if let secondaryAction = secondaryAction {
-            alert.addAction(secondaryAction)
-        } else {
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-        }
-
-        present(alert, animated: true)
     }
 }
 
