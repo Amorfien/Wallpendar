@@ -22,7 +22,7 @@ struct CalendarConfiguration {
         backgroundColor: .black,
         backgroundAlpha: 0.5,
         dayTextColor: .white,
-        weekendTextColor: .systemRed,
+        weekendTextColor: .weekend,
         weekdayHeaderColor: .lightGray,
         monthHeaderColor: .white,
         dayFontSize: 16
@@ -172,10 +172,10 @@ final class MonthCalendarView: UIView {
             $0.height.equalTo(32)
         }
         leftButton.snp.makeConstraints {
-            $0.width.equalTo(60)
+            $0.width.equalTo(44)
         }
         rightButton.snp.makeConstraints {
-            $0.width.equalTo(60)
+            $0.width.equalTo(44)
         }
 
         mainStackView.addArrangedSubview(headerContainer)
