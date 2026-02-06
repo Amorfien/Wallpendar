@@ -15,7 +15,7 @@ class ViewController: UIViewController {
         didSet {
             viewsToHide.forEach { $0.isHidden = isPreview }
             previewButton.setImage(.init(systemName: isPreview ? "eye" : "eye.slash"), for: .normal)
-            previewButton.alpha = isPreview ? 0.33 : 1
+            previewButton.alpha = isPreview ? 0.25 : 1
         }
     }
 
@@ -28,7 +28,7 @@ class ViewController: UIViewController {
     ]
 
     private let apiManager = APIManager()
-    private var imageMode: ImageMode = .grayscale
+    private var imageMode: ImageMode = .standart
 
     private var calendarHeight: Float = 250
 
@@ -108,6 +108,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .darkGray
+        activityIndicator.color = .white
         view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider, activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
@@ -254,28 +255,17 @@ class ViewController: UIViewController {
     }
 
     private func saveImageToPhotoLibrary(_ image: UIImage) {
-        // Показываем индикатор загрузки
-        let activityIndicator = UIActivityIndicatorView(style: .large)
-        activityIndicator.color = .white
-        activityIndicator.center = view.center
-        view.addSubview(activityIndicator)
         activityIndicator.startAnimating()
-
-        // Сохраняем изображение
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
     }
 
     @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
-        // Убираем индикатор
-        DispatchQueue.main.async {
-            self.view.subviews
-                .compactMap { $0 as? UIActivityIndicatorView }
-                .forEach { $0.stopAnimating(); $0.removeFromSuperview() }
-
+        DispatchQueue.main.async { [weak self] in
+            self?.activityIndicator.stopAnimating()
             if let error = error {
-                self.showAlert(title: "Ошибка", message: "Не удалось сохранить изображение: \(error.localizedDescription)")
+                self?.showAlert(title: "Ошибка", message: "Не удалось сохранить изображение: \(error.localizedDescription)")
             } else {
-                self.showAlert(title: "Успешно", message: "Обои сохранены в галерею")
+                self?.showAlert(title: "Успешно", message: "Обои сохранены в галерею")
             }
         }
     }
@@ -307,29 +297,22 @@ extension ViewController: PHPickerViewControllerDelegate {
 }
 
 extension ViewController: UIContextMenuInteractionDelegate {
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(actionProvider:  { _ in
-            let mode1 = UIAction(title: "Standart", state: self.imageMode == .standart ? .on : .off) { _ in
-                self.imageMode = .standart
-                self.tapGesture()
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(actionProvider: { _ in
+            var childrens: [UIAction] = []
+            ImageMode.allCases.forEach { mode in
+                let action = UIAction(title: mode.title, state: self.imageMode == mode ? .on : .off) { _ in
+                    self.imageMode = mode
+                    self.tapGesture()
+                }
+                switch mode {
+                case .blur1, .blur2: action.attributes = .disabled
+                default: break
+                }
+                childrens.append(action)
             }
-            let mode2 = UIAction(title: "Grayscale", state: self.imageMode == .grayscale ? .on : .off) { _ in
-                self.imageMode = .grayscale
-                self.tapGesture()
-            }
-            let mode3 = UIAction(title: "Weak Blur", state: self.imageMode == .blur1 ? .on : .off) { _ in
-                self.imageMode = .blur1
-                self.tapGesture()
-            }
-            let mode4 = UIAction(title: "StrongBlur", state: self.imageMode == .blur2 ? .on : .off) { _ in
-                self.imageMode = .blur2
-                self.tapGesture()
-            }
-            mode3.attributes = .disabled
-            mode4.attributes = .disabled
-
-            return UIMenu(title: "Picture mode:", children: [mode1, mode2, mode3, mode4])
+            return UIMenu(title: "Picture mode:", children: childrens)
         })
     }
-
 }

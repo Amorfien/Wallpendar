@@ -40,9 +40,22 @@ final class APIManager {
     }
 }
 
-enum ImageMode: String {
+enum ImageMode: String, CaseIterable {
     case standart = ""
     case grayscale = "?grayscale=1" // 0-1
     case blur1 = "?blur=3" // 0...10
     case blur2 = "?blur=7"
+
+    var title: String {
+        switch self {
+        case .standart:
+            return "Standart"
+        case .grayscale:
+            return "Grayscale"
+        case .blur1:
+            return "Weak Blur"
+        case .blur2:
+            return "Strong Blur"
+        }
+    }
 }
