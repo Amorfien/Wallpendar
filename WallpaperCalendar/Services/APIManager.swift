@@ -42,7 +42,7 @@ final class APIManager {
 
 enum ImageMode: String {
     case standart = ""
-    case grayscale = "?grayscale=1"
-    case blur1 = "?blur=2"
-    case blur2 = "?blur=5"
+    case grayscale = "?grayscale=1" // 0-1
+    case blur1 = "?blur=3" // 0...10
+    case blur2 = "?blur=7"
 }

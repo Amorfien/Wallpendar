@@ -37,6 +37,7 @@ class ViewController: UIViewController {
         imageView.contentMode = .scaleAspectFill
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(tapGestureRecognizer)
+        imageView.addGestureRecognizer(longPressGestureRecognizer)
         return imageView
     }()
 
@@ -80,6 +81,8 @@ class ViewController: UIViewController {
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
     private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapGesture))
+    private lazy var longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
+    private lazy var contextMenu = UIContextMenuInteraction(delegate: self)
 
     private lazy var photoPicker: PHPickerViewController = {
         var config = PHPickerConfiguration()
@@ -104,7 +107,7 @@ class ViewController: UIViewController {
     }
 
     private func setupUI() {
-        view.backgroundColor = .systemBlue
+        view.backgroundColor = .darkGray
         view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider, activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
@@ -205,6 +208,11 @@ class ViewController: UIViewController {
             }
     }
 
+    @objc
+    private func longPress() {
+        backgroundImageView.addInteraction(contextMenu)
+    }
+
     // MARK: - Private Methods
     private func getWallpaper() -> UIImage {
         var views = viewsToHide
@@ -296,4 +304,32 @@ extension ViewController: PHPickerViewControllerDelegate {
             }
         }
     }
+}
+
+extension ViewController: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(actionProvider:  { _ in
+            let mode1 = UIAction(title: "Standart", state: self.imageMode == .standart ? .on : .off) { _ in
+                self.imageMode = .standart
+                self.tapGesture()
+            }
+            let mode2 = UIAction(title: "Grayscale", state: self.imageMode == .grayscale ? .on : .off) { _ in
+                self.imageMode = .grayscale
+                self.tapGesture()
+            }
+            let mode3 = UIAction(title: "Weak Blur", state: self.imageMode == .blur1 ? .on : .off) { _ in
+                self.imageMode = .blur1
+                self.tapGesture()
+            }
+            let mode4 = UIAction(title: "StrongBlur", state: self.imageMode == .blur2 ? .on : .off) { _ in
+                self.imageMode = .blur2
+                self.tapGesture()
+            }
+            mode3.attributes = .disabled
+            mode4.attributes = .disabled
+
+            return UIMenu(title: "Picture mode:", children: [mode1, mode2, mode3, mode4])
+        })
+    }
+
 }
