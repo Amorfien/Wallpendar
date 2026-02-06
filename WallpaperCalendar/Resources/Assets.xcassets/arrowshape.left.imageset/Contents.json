@@ -1,12 +1,15 @@
 {
   "images" : [
     {
-      "filename" : "arrowshape.left.png",
+      "filename" : "arrowshape.left.svg",
       "idiom" : "universal"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
   }
 }

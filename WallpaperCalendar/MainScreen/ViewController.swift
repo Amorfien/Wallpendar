@@ -13,6 +13,8 @@ class ViewController: UIViewController {
 
     private lazy var isPreview: Bool = false {
         didSet {
+            setNeedsStatusBarAppearanceUpdate()
+            setNeedsUpdateOfHomeIndicatorAutoHidden()
             viewsToHide.forEach { $0.isHidden = isPreview }
             previewButton.setImage(.init(systemName: isPreview ? "eye" : "eye.slash"), for: .normal)
             previewButton.alpha = isPreview ? 0.25 : 1
@@ -23,6 +25,7 @@ class ViewController: UIViewController {
         loadButton,
         saveButton,
         verticalSlider,
+        transparencySlider,
         calendarView.leftButton,
         calendarView.rightButton
     ]
@@ -57,7 +60,7 @@ class ViewController: UIViewController {
 
     private lazy var saveButton: SquareButton = {
         let button = SquareButton()
-        button.setImage(.init(systemName: "arrow.down.circle.dotted"), for: .normal)
+        button.setImage(.init(systemName: "tray.and.arrow.down"), for: .normal)
         button.addTarget(self, action: #selector(saveImageToLibrary), for: .touchUpInside)
         return button
     }()
@@ -70,9 +73,19 @@ class ViewController: UIViewController {
         slider.minimumValue = -screenHalfHeight + (calendarHeight / 2)
         slider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
         slider.tintColor = .clear
-        slider.minimumTrackTintColor = .clear
         slider.maximumTrackTintColor = .clear
-        slider.setThumbImage(UIImage.verticalArrowsFill.withTintColor(.white.withAlphaComponent(0.5), renderingMode: .alwaysOriginal), for: .normal)
+        slider.setThumbImage(UIImage.verticalArrows.withTintColor(.white.withAlphaComponent(0.85), renderingMode: .alwaysOriginal), for: .normal)
+        return slider
+    }()
+
+    private lazy var transparencySlider: UISlider = {
+        let slider = UISlider()
+        slider.value = 0.5
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.tintColor = .white.withAlphaComponent(0.66)
+        slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
+        slider.setThumbImage(UIImage.transparency.withTintColor(.white.withAlphaComponent(0.85), renderingMode: .alwaysOriginal), for: .normal)
         return slider
     }()
 
@@ -94,10 +107,10 @@ class ViewController: UIViewController {
     }()
 
     override var prefersStatusBarHidden: Bool {
-        return true
+        return isPreview
     }
     override var prefersHomeIndicatorAutoHidden: Bool {
-        return true
+        return isPreview
     }
 
     // MARK: - Lifecycle
@@ -109,7 +122,8 @@ class ViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
-        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider, activityIndicator)
+        view.addSubviews(backgroundImageView, loadButton, saveButton, previewButton, verticalSlider, transparencySlider, activityIndicator)
+        backgroundImageView.addSubview(calendarView)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -122,7 +136,7 @@ class ViewController: UIViewController {
         }
 
         previewButton.snp.makeConstraints {
-            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(12)
+            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(4)
             $0.size.equalTo(44)
         }
         loadButton.snp.makeConstraints {
@@ -139,11 +153,17 @@ class ViewController: UIViewController {
 
         verticalSlider.snp.makeConstraints {
             $0.centerY.equalToSuperview()
-            $0.centerX.equalToSuperview().offset((-R.Device.screenWidth / 2) + 49)
+            $0.centerX.equalToSuperview().offset((-R.Device.screenWidth / 2) + 32)
             let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.width ?? 56)
             $0.width.equalTo(R.Device.screenHeight + thumbSize - calendarHeight)
         }
         verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
+
+        transparencySlider.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.top.equalTo(calendarView.snp.bottom).offset(2)
+            $0.width.equalTo(calendarView)
+        }
     }
 
     // MARK: - Actions
@@ -154,6 +174,11 @@ class ViewController: UIViewController {
             $0.horizontalEdges.equalToSuperview().inset(48)
             $0.height.equalTo(calendarHeight)
         }
+    }
+
+    @objc
+    private func transparencyChanged(_ sender: UISlider) {
+        calendarView.backgroundColor = .darkCalendar.withAlphaComponent(CGFloat(sender.value))
     }
 
     @objc

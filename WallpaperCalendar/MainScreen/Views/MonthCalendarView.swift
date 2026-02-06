@@ -18,17 +18,7 @@ struct CalendarConfiguration {
     let monthHeaderColor: UIColor
     let dayFontSize: CGFloat
 
-    static let initial = Self.init(
-        backgroundColor: .black,
-        backgroundAlpha: 0.5,
-        dayTextColor: .white,
-        weekendTextColor: .weekend,
-        weekdayHeaderColor: .lightGray,
-        monthHeaderColor: .white,
-        dayFontSize: 16
-    )
-
-    init(backgroundColor: UIColor = .black,
+    init(backgroundColor: UIColor = .darkCalendar,
          backgroundAlpha: CGFloat = 0.5,
          dayTextColor: UIColor = .white,
          weekendTextColor: UIColor = .systemRed,
@@ -94,14 +84,14 @@ final class MonthCalendarView: UIView {
     
     // MARK: - Инициализация
 
-    init(with configuration: CalendarConfiguration = .initial) {
+    init(with configuration: CalendarConfiguration = .init()) {
         self.configuration = configuration
         super.init(frame: .zero)
         setupView()
     }
     
     required init?(coder: NSCoder) {
-        self.configuration = .initial
+        self.configuration = CalendarConfiguration()
         super.init(coder: coder)
         setupView()
     }
