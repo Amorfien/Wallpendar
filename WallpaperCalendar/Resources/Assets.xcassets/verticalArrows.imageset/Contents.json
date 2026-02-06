@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "arrowshape.left.arrowshape.right.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

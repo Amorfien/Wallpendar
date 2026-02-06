@@ -13,6 +13,7 @@ class ViewController: UIViewController {
 
     private var calendarHeight: Float = 250
     private let screenHeight = Float(UIScreen.main.bounds.height)
+    private let screenWidth = Float(UIScreen.main.bounds.width)
 
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: .snegir)
@@ -40,7 +41,9 @@ class ViewController: UIViewController {
         slider.minimumValue = -screenHalfHeight + (calendarHeight / 2)
         slider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
         slider.tintColor = .clear
-        slider.thumbTintColor = .white.withAlphaComponent(0.1)
+        slider.minimumTrackTintColor = .clear
+        slider.maximumTrackTintColor = .clear
+        slider.setThumbImage(UIImage.verticalArrowsFill.withTintColor(.yellow.withAlphaComponent(0.5), renderingMode: .alwaysOriginal), for: .normal)
         return slider
     }()
 
@@ -70,15 +73,17 @@ class ViewController: UIViewController {
             $0.size.equalTo(44)
         }
 
-        verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
         verticalSlider.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.width.equalTo(screenHeight + 40 - calendarHeight)
+            $0.centerY.equalToSuperview()
+            $0.centerX.equalToSuperview().offset((-screenWidth / 2) + 49)
+            let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.height ?? 57)
+            $0.width.equalTo(screenHeight + thumbSize - calendarHeight)
         }
+        verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
     }
 
     private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, /*shareButton,*/ verticalSlider, calendarView.stepper]
+        let viewsToHide = [saveButton, verticalSlider, calendarView.stepper]
         viewsToHide.forEach {
             $0.alpha = 0
             $0.isHidden = true
