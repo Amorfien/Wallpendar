@@ -40,38 +40,23 @@ class ViewController: UIViewController {
         return imageView
     }()
 
-    private lazy var previewButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var previewButton: SquareButton = {
+        let button = SquareButton()
         button.setImage(.init(systemName: "eye.slash"), for: .normal)
-        button.backgroundColor = .black.withAlphaComponent(0.2)
-        button.tintColor = .white
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 0.5
-        button.layer.borderColor = UIColor.white.cgColor
         button.addTarget(self, action: #selector(previewTapped), for: .touchUpInside)
         return button
     }()
 
-    private lazy var loadButton: UIButton = {
-        let button = UIButton(type: .system)
+    private lazy var loadButton: SquareButton = {
+        let button = SquareButton()
         button.setImage(.init(systemName: "photo.on.rectangle.angled"), for: .normal)
-        button.backgroundColor = .black.withAlphaComponent(0.2)
-        button.tintColor = .white
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 0.5
-        button.layer.borderColor = UIColor.white.cgColor
         button.addTarget(self, action: #selector(loadImageFromLibrary), for: .touchUpInside)
         return button
     }()
 
-    private lazy var saveButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(.init(systemName: "square.and.arrow.down"), for: .normal)
-        button.backgroundColor = .black.withAlphaComponent(0.2)
-        button.tintColor = .white
-        button.layer.cornerRadius = 12
-        button.layer.borderWidth = 0.5
-        button.layer.borderColor = UIColor.white.cgColor
+    private lazy var saveButton: SquareButton = {
+        let button = SquareButton()
+        button.setImage(.init(systemName: "arrow.down.circle.dotted"), for: .normal)
         button.addTarget(self, action: #selector(saveImageToLibrary), for: .touchUpInside)
         return button
     }()

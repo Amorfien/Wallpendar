@@ -45,7 +45,7 @@ struct CalendarConfiguration {
     }
 }
 
-class MonthCalendarView: UIView {
+final class MonthCalendarView: UIView {
     
     // MARK: - Приватные свойства
 
