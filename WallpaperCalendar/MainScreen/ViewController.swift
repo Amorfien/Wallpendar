@@ -77,6 +77,8 @@ class ViewController: UIViewController {
 
     private var calendarView = MonthCalendarView()
 
+    private let activityIndicator = UIActivityIndicatorView(style: .large)
+
     private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapGesture))
 
     private lazy var photoPicker: PHPickerViewController = {
@@ -103,7 +105,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider)
+        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider, activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -126,6 +128,9 @@ class ViewController: UIViewController {
         saveButton.snp.makeConstraints {
             $0.trailing.size.equalTo(previewButton)
             $0.top.equalTo(loadButton.snp.bottom).offset(12)
+        }
+        activityIndicator.snp.makeConstraints {
+            $0.center.equalToSuperview()
         }
 
         verticalSlider.snp.makeConstraints {
@@ -178,22 +183,22 @@ class ViewController: UIViewController {
 
     @objc
     private func tapGesture() {
+        activityIndicator.startAnimating()
         apiManager.getImage(
             width: R.Device.screenScale * R.Device.screenWidth,
             height: R.Device.screenScale * R.Device.screenHeight,
-            mode: imageMode) { result in
-            switch result {
-            case .success(let data):
+            mode: imageMode) { [weak self] result in
                 DispatchQueue.main.async { [weak self] in
-                    self?.backgroundImageView.image = UIImage(data: data)
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-                DispatchQueue.main.async { [weak self] in
-                    self?.backgroundImageView.image = R.Img.initialImages.randomElement()
+                    self?.activityIndicator.stopAnimating()
+                    switch result {
+                    case .success(let data):
+                        self?.backgroundImageView.image = UIImage(data: data)
+                    case .failure(let error):
+                        print(error.localizedDescription)
+                        self?.backgroundImageView.image = R.Img.initialImages.randomElement()
+                    }
                 }
             }
-        }
     }
 
     // MARK: - Private Methods
