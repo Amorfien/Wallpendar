@@ -55,7 +55,7 @@ class MonthCalendarView: UIView {
 
     private var configuration: CalendarConfiguration
 
-    private var savedValue: Double = 0
+    private var currentMonthOffset = 0
 
     private lazy var dateComponents: DateComponents = {
         var dateComponents = DateComponents()
@@ -77,8 +77,7 @@ class MonthCalendarView: UIView {
     private let mainStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.distribution = .fillEqually
-        stack.spacing = 8
+        stack.distribution = .equalSpacing
         return stack
     }()
     
@@ -88,14 +87,19 @@ class MonthCalendarView: UIView {
         return label
     }()
 
-    lazy var stepper: UIStepper = {
-        let stepper = UIStepper()
-        stepper.value = 0
-        stepper.stepValue = 1
-        stepper.minimumValue = -1
-        stepper.maximumValue = 12
-        stepper.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .valueChanged)
-        return stepper
+    lazy var leftButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(.arrowshapeLeft.withTintColor(.white.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.tag = -1
+        button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
+        return button
+    }()
+    lazy var rightButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(.arrowshapeRight.withTintColor(.white.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.tag = 1
+        button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
+        return button
     }()
 
     private var dayLabels: [UILabel] = []
@@ -145,14 +149,9 @@ class MonthCalendarView: UIView {
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         self.clipsToBounds = true
 
-        addSubviews(mainStackView, stepper)
+        addSubviews(mainStackView)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
-        }
-
-        stepper.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.trailing.equalToSuperview()
         }
 
         setupCalendarStructure()
@@ -176,13 +175,20 @@ class MonthCalendarView: UIView {
 
     private func setupCalendarStructure() {
         // Добавляем заголовок месяца
-        let headerContainer = UIView()
-        headerContainer.addSubview(monthHeaderLabel)
+        let headerContainer = UIStackView(arrangedSubviews: [leftButton, monthHeaderLabel, rightButton])
+        headerContainer.distribution = .fill
+        headerContainer.alignment = .top
+
         monthHeaderLabel.textColor = configuration.monthHeaderColor
         monthHeaderLabel.font = .systemFont(ofSize: round(configuration.dayFontSize * 1.25), weight: .medium)
-
-        monthHeaderLabel.snp.makeConstraints {
-            $0.center.equalToSuperview()
+        headerContainer.snp.makeConstraints {
+            $0.height.equalTo(32)
+        }
+        leftButton.snp.makeConstraints {
+            $0.width.equalTo(60)
+        }
+        rightButton.snp.makeConstraints {
+            $0.width.equalTo(60)
         }
 
         mainStackView.addArrangedSubview(headerContainer)
@@ -202,7 +208,7 @@ class MonthCalendarView: UIView {
             let label = UILabel()
             label.text = weekday
             label.textAlignment = .center
-            label.font = .systemFont(ofSize: 14, weight: .medium)
+            label.font = .systemFont(ofSize: configuration.dayFontSize - 1, weight: .semibold)
             label.textColor = configuration.weekdayHeaderColor
             stack.addArrangedSubview(label)
         }
@@ -332,8 +338,11 @@ class MonthCalendarView: UIView {
     }
 
     @objc
-    private func stepperValueChanged(_ sender: UIStepper) {
-        changeMonth(increase: sender.value > savedValue)
-        savedValue = sender.value
+    private func stepperValueChanged(_ sender: UIButton) {
+        let newValue = currentMonthOffset + sender.tag
+        if newValue > -3 && newValue < 13 {
+            changeMonth(increase: sender.tag > 0)
+            currentMonthOffset += sender.tag
+        }
     }
 }

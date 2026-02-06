@@ -43,7 +43,7 @@ class ViewController: UIViewController {
         slider.tintColor = .clear
         slider.minimumTrackTintColor = .clear
         slider.maximumTrackTintColor = .clear
-        slider.setThumbImage(UIImage.verticalArrowsFill.withTintColor(.yellow.withAlphaComponent(0.5), renderingMode: .alwaysOriginal), for: .normal)
+        slider.setThumbImage(UIImage.verticalArrowsFill.withTintColor(.white.withAlphaComponent(0.5), renderingMode: .alwaysOriginal), for: .normal)
         return slider
     }()
 
@@ -76,14 +76,14 @@ class ViewController: UIViewController {
         verticalSlider.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.centerX.equalToSuperview().offset((-screenWidth / 2) + 49)
-            let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.height ?? 57)
+            let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.width ?? 56)
             $0.width.equalTo(screenHeight + thumbSize - calendarHeight)
         }
         verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
     }
 
     private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, verticalSlider, calendarView.stepper]
+        let viewsToHide = [saveButton, verticalSlider, calendarView.leftButton, calendarView.rightButton]
         viewsToHide.forEach {
             $0.alpha = 0
             $0.isHidden = true
