@@ -7,9 +7,23 @@
 
 import UIKit
 import SnapKit
-import Photos
+import PhotosUI
 
 class ViewController: UIViewController {
+
+    private lazy var isPreview: Bool = false {
+        didSet {
+            viewsToHide.forEach { $0.isHidden = isPreview }
+        }
+    }
+
+    private lazy var viewsToHide: [UIView] = [
+        loadButton,
+        saveButton,
+        verticalSlider,
+        calendarView.leftButton,
+        calendarView.rightButton
+    ]
 
     private let apiManager = APIManager()
     private var imageMode: ImageMode = .grayscale
@@ -24,9 +38,21 @@ class ViewController: UIViewController {
         return imageView
     }()
 
-    private lazy var saveButton: UIButton = {
+    private lazy var loadButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(.init(systemName: "photo.on.rectangle.angled"), for: .normal)
+        button.backgroundColor = .black.withAlphaComponent(0.2)
+        button.tintColor = .white
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 0.5
+        button.layer.borderColor = UIColor.white.cgColor
+        button.addTarget(self, action: #selector(loadImageFromLibrary), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var saveButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(.init(systemName: "square.and.arrow.down"), for: .normal)
         button.backgroundColor = .black.withAlphaComponent(0.2)
         button.tintColor = .white
         button.layer.cornerRadius = 12
@@ -54,6 +80,15 @@ class ViewController: UIViewController {
 
     private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapGesture))
 
+    private lazy var photoPicker: PHPickerViewController = {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        return picker
+    }()
+
     override var prefersStatusBarHidden: Bool {
         return true
     }
@@ -61,6 +96,7 @@ class ViewController: UIViewController {
         return true
     }
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -68,7 +104,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, saveButton, verticalSlider)
+        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, verticalSlider)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -80,8 +116,13 @@ class ViewController: UIViewController {
             $0.height.equalTo(calendarHeight)
         }
 
-        saveButton.snp.makeConstraints {
+        loadButton.snp.makeConstraints {
             $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(12)
+            $0.size.equalTo(44)
+        }
+        saveButton.snp.makeConstraints {
+            $0.trailing.equalTo(loadButton)
+            $0.top.equalTo(loadButton.snp.bottom).offset(12)
             $0.size.equalTo(44)
         }
 
@@ -94,27 +135,7 @@ class ViewController: UIViewController {
         verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
     }
 
-    private func getWallpaper() -> UIImage {
-        let viewsToHide = [saveButton, verticalSlider, calendarView.leftButton, calendarView.rightButton]
-        viewsToHide.forEach {
-            $0.alpha = 0
-            $0.isHidden = true
-        }
-        view.layoutIfNeeded()
-
-        // Конвертируем snapshot в UIImage
-        let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
-        let image = renderer.image { context in
-            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
-        }
-
-        UIView.animate(withDuration: 1.2, delay: 2) {
-            viewsToHide.forEach { $0.alpha = 1 }
-        }
-        viewsToHide.forEach { $0.isHidden = false }
-        return image
-    }
-
+    // MARK: - Actions
     @objc
     private func sliderValueChanged(_ sender: UISlider) {
         calendarView.snp.remakeConstraints {
@@ -122,6 +143,11 @@ class ViewController: UIViewController {
             $0.horizontalEdges.equalToSuperview().inset(48)
             $0.height.equalTo(calendarHeight)
         }
+    }
+
+    @objc
+    private func loadImageFromLibrary() {
+        present(photoPicker, animated: true)
     }
 
     @objc
@@ -161,6 +187,27 @@ class ViewController: UIViewController {
                 }
             }
         }
+    }
+
+    // MARK: - Private Methods
+    private func getWallpaper() -> UIImage {
+        viewsToHide.forEach {
+            $0.alpha = 0
+            $0.isHidden = true
+        }
+        view.layoutIfNeeded()
+
+        // Конвертируем snapshot в UIImage
+        let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
+        let image = renderer.image { context in
+            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+        }
+
+        UIView.animate(withDuration: 1.2, delay: 2) {
+            self.viewsToHide.forEach { $0.alpha = 1 }
+        }
+        viewsToHide.forEach { $0.isHidden = false }
+        return image
     }
 
     private func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
@@ -220,3 +267,15 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let result = results.first else { return }
+        result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+            guard let self, let image = image as? UIImage else { return }
+            DispatchQueue.main.async { [weak self] in
+                self?.backgroundImageView.image = image
+            }
+        }
+    }
+}

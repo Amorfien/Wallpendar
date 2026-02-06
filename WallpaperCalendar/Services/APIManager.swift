@@ -25,6 +25,7 @@ final class APIManager {
         }
         var request = URLRequest(url: apiURL)
         request.cachePolicy = .reloadIgnoringCacheData
+        request.timeoutInterval = 5
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             guard let data else {
