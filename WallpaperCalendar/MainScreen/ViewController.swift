@@ -195,7 +195,11 @@ class ViewController: UIViewController {
                         self?.backgroundImageView.image = UIImage(data: data)
                     case .failure(let error):
                         print(error.localizedDescription)
-                        self?.backgroundImageView.image = R.Img.initialImages.randomElement()
+                        var newImage: UIImage
+                        repeat {
+                            newImage = R.Img.initialImages.randomElement() ?? UIImage()
+                        } while newImage.hash == self?.backgroundImageView.image?.hash
+                        self?.backgroundImageView.image = newImage
                     }
                 }
             }
