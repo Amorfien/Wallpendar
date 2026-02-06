@@ -14,6 +14,8 @@ class ViewController: UIViewController {
     private lazy var isPreview: Bool = false {
         didSet {
             viewsToHide.forEach { $0.isHidden = isPreview }
+            previewButton.setImage(.init(systemName: isPreview ? "eye" : "eye.slash"), for: .normal)
+            previewButton.alpha = isPreview ? 0.33 : 1
         }
     }
 
@@ -36,6 +38,18 @@ class ViewController: UIViewController {
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(tapGestureRecognizer)
         return imageView
+    }()
+
+    private lazy var previewButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(.init(systemName: "eye.slash"), for: .normal)
+        button.backgroundColor = .black.withAlphaComponent(0.2)
+        button.tintColor = .white
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 0.5
+        button.layer.borderColor = UIColor.white.cgColor
+        button.addTarget(self, action: #selector(previewTapped), for: .touchUpInside)
+        return button
     }()
 
     private lazy var loadButton: UIButton = {
@@ -104,7 +118,7 @@ class ViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .systemBlue
-        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, verticalSlider)
+        view.addSubviews(backgroundImageView, calendarView, loadButton, saveButton, previewButton, verticalSlider)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -116,14 +130,17 @@ class ViewController: UIViewController {
             $0.height.equalTo(calendarHeight)
         }
 
-        loadButton.snp.makeConstraints {
+        previewButton.snp.makeConstraints {
             $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(12)
             $0.size.equalTo(44)
         }
+        loadButton.snp.makeConstraints {
+            $0.trailing.size.equalTo(previewButton)
+            $0.top.equalTo(previewButton.snp.bottom).offset(12)
+        }
         saveButton.snp.makeConstraints {
-            $0.trailing.equalTo(loadButton)
+            $0.trailing.size.equalTo(previewButton)
             $0.top.equalTo(loadButton.snp.bottom).offset(12)
-            $0.size.equalTo(44)
         }
 
         verticalSlider.snp.makeConstraints {
@@ -148,6 +165,11 @@ class ViewController: UIViewController {
     @objc
     private func loadImageFromLibrary() {
         present(photoPicker, animated: true)
+    }
+
+    @objc
+    private func previewTapped() {
+        isPreview.toggle()
     }
 
     @objc
@@ -191,7 +213,9 @@ class ViewController: UIViewController {
 
     // MARK: - Private Methods
     private func getWallpaper() -> UIImage {
-        viewsToHide.forEach {
+        var views = viewsToHide
+        views.append(previewButton)
+        views.forEach {
             $0.alpha = 0
             $0.isHidden = true
         }
@@ -204,9 +228,9 @@ class ViewController: UIViewController {
         }
 
         UIView.animate(withDuration: 1.2, delay: 2) {
-            self.viewsToHide.forEach { $0.alpha = 1 }
+            views.forEach { $0.alpha = 1 }
         }
-        viewsToHide.forEach { $0.isHidden = false }
+        views.forEach { $0.isHidden = false }
         return image
     }
 
