@@ -14,7 +14,7 @@ enum APIError: Error {
 
 final class APIManager {
 
-    func getImage(width: Float, height: Float, mode: ImageMode, completion: @escaping (Result<Data, Error>) -> ()) {
+    func getImage(width: CGFloat, height: CGFloat, mode: ImageMode, completion: @escaping (Result<Data, Error>) -> ()) {
         let tunnel = "https://"
         let server = "picsum.dev"
         let endpoint = "/\(Int(width))/\(Int(height))"

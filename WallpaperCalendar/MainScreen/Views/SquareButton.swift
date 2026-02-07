@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 final class SquareButton: UIButton {
 
@@ -30,6 +31,10 @@ final class SquareButton: UIButton {
         layer.cornerRadius = 12
         layer.borderWidth = 0.5
         layer.borderColor = UIColor.white.cgColor
+
+        self.snp.makeConstraints {
+            $0.size.equalTo(44)
+        }
     }
 
 }

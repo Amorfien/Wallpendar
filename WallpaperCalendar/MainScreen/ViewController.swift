@@ -22,7 +22,8 @@ class ViewController: UIViewController {
     }
 
     private lazy var viewsToHide: [UIView] = [
-        loadButton,
+        reloadButton,
+        galleryButton,
         saveButton,
         verticalSlider,
         transparencySlider,
@@ -33,15 +34,24 @@ class ViewController: UIViewController {
     private let apiManager = APIManager()
     private var imageMode: ImageMode = .standart
 
-    private var calendarHeight: Float = 250
+    private var calendarHeight: CGFloat = 250
 
     private lazy var backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: R.Img.initialImages.randomElement())
         imageView.contentMode = .scaleAspectFill
-        imageView.isUserInteractionEnabled = true
-        imageView.addGestureRecognizer(tapGestureRecognizer)
-        imageView.addGestureRecognizer(longPressGestureRecognizer)
         return imageView
+    }()
+
+    private lazy var reloadButton: SquareButton = {
+        let button = SquareButton()
+        button.setImage(.init(systemName: "arrow.trianglehead.2.clockwise"), for: .normal)
+        button.addTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
+
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
+        longPress.minimumPressDuration = 1.2
+        button.addGestureRecognizer(longPress)
+
+        return button
     }()
 
     private lazy var previewButton: SquareButton = {
@@ -51,7 +61,7 @@ class ViewController: UIViewController {
         return button
     }()
 
-    private lazy var loadButton: SquareButton = {
+    private lazy var galleryButton: SquareButton = {
         let button = SquareButton()
         button.setImage(.init(systemName: "photo.on.rectangle.angled"), for: .normal)
         button.addTarget(self, action: #selector(loadImageFromLibrary), for: .touchUpInside)
@@ -65,18 +75,7 @@ class ViewController: UIViewController {
         return button
     }()
 
-    private lazy var verticalSlider: TransparentSlider = {
-        let slider = TransparentSlider()
-        let screenHalfHeight = R.Device.screenHeight / 2
-        slider.value = 0
-        slider.maximumValue = screenHalfHeight - (calendarHeight / 2)
-        slider.minimumValue = -screenHalfHeight + (calendarHeight / 2)
-        slider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
-        slider.tintColor = .clear
-        slider.maximumTrackTintColor = .clear
-        slider.setThumbImage(UIImage.verticalArrows.withTintColor(.white.withAlphaComponent(0.85), renderingMode: .alwaysOriginal), for: .normal)
-        return slider
-    }()
+    private let verticalSlider = TransparentSlider()
 
     private lazy var transparencySlider: UISlider = {
         let slider = UISlider()
@@ -93,8 +92,6 @@ class ViewController: UIViewController {
 
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
-    private lazy var tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapGesture))
-    private lazy var longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
     private lazy var contextMenu = UIContextMenuInteraction(delegate: self)
 
     private lazy var photoPicker: PHPickerViewController = {
@@ -122,8 +119,7 @@ class ViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
-        view.addSubviews(backgroundImageView, loadButton, saveButton, previewButton, verticalSlider, transparencySlider, activityIndicator)
-        backgroundImageView.addSubview(calendarView)
+        view.addSubviews(backgroundImageView, calendarView, reloadButton, galleryButton, saveButton, previewButton, verticalSlider, transparencySlider, activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -135,17 +131,20 @@ class ViewController: UIViewController {
             $0.height.equalTo(calendarHeight)
         }
 
+        reloadButton.snp.makeConstraints {
+            $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(4)
+        }
+
         previewButton.snp.makeConstraints {
             $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(4)
-            $0.size.equalTo(44)
         }
-        loadButton.snp.makeConstraints {
-            $0.trailing.size.equalTo(previewButton)
+        galleryButton.snp.makeConstraints {
+            $0.trailing.equalTo(previewButton)
             $0.top.equalTo(previewButton.snp.bottom).offset(12)
         }
         saveButton.snp.makeConstraints {
-            $0.trailing.size.equalTo(previewButton)
-            $0.top.equalTo(loadButton.snp.bottom).offset(12)
+            $0.trailing.equalTo(previewButton)
+            $0.top.equalTo(galleryButton.snp.bottom).offset(12)
         }
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
@@ -154,10 +153,11 @@ class ViewController: UIViewController {
         verticalSlider.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.centerX.equalToSuperview().offset((-R.Device.screenWidth / 2) + 32)
-            let thumbSize = Float(verticalSlider.thumbImage(for: .normal)?.size.width ?? 56)
+            let thumbSize = verticalSlider.thumbImage(for: .normal)?.size.width ?? 56
             $0.width.equalTo(R.Device.screenHeight + thumbSize - calendarHeight)
         }
         verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
+        verticalSlider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
 
         transparencySlider.snp.makeConstraints {
             $0.centerX.equalToSuperview()
@@ -182,36 +182,7 @@ class ViewController: UIViewController {
     }
 
     @objc
-    private func loadImageFromLibrary() {
-        present(photoPicker, animated: true)
-    }
-
-    @objc
-    private func previewTapped() {
-        isPreview.toggle()
-    }
-
-    @objc
-    private func saveImageToLibrary() {
-
-        let image = getWallpaper()
-
-        // Запрашиваем разрешение на доступ к фото библиотеке
-        requestPhotoLibraryPermission { [weak self] granted in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                if granted {
-                    self.saveImageToPhotoLibrary(image)
-                } else {
-                    self.showPermissionAlert()
-                }
-            }
-        }
-    }
-
-    @objc
-    private func tapGesture() {
+    private func reloadTapped() {
         activityIndicator.startAnimating()
         apiManager.getImage(
             width: R.Device.screenScale * R.Device.screenWidth,
@@ -235,12 +206,44 @@ class ViewController: UIViewController {
     }
 
     @objc
+    private func loadImageFromLibrary() {
+        activityIndicator.startAnimating()
+        present(photoPicker, animated: true) { [weak self] in
+            self?.activityIndicator.stopAnimating()
+        }
+    }
+
+    @objc
+    private func previewTapped() {
+        isPreview.toggle()
+    }
+
+    @objc
+    private func saveImageToLibrary() {
+
+        let image = buildWallpaper()
+
+        // Запрашиваем разрешение на доступ к фото библиотеке
+        requestPhotoLibraryPermission { [weak self] granted in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                if granted {
+                    self.saveImageToPhotoLibrary(image)
+                } else {
+                    self.showPermissionAlert()
+                }
+            }
+        }
+    }
+
+    @objc
     private func longPress() {
-        backgroundImageView.addInteraction(contextMenu)
+        reloadButton.addInteraction(contextMenu)
     }
 
     // MARK: - Private Methods
-    private func getWallpaper() -> UIImage {
+    private func buildWallpaper() -> UIImage {
         var views = viewsToHide
         views.append(previewButton)
         views.forEach {
@@ -329,7 +332,7 @@ extension ViewController: UIContextMenuInteractionDelegate {
             ImageMode.allCases.forEach { mode in
                 let action = UIAction(title: mode.title, state: self.imageMode == mode ? .on : .off) { _ in
                     self.imageMode = mode
-                    self.tapGesture()
+                    self.reloadTapped()
                 }
                 switch mode {
                 case .blur1, .blur2: action.attributes = .disabled
