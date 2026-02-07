@@ -10,8 +10,11 @@ import SnapKit
 
 final class SquareButton: UIButton {
 
-    convenience init() {
+    var isButtonTapped: (() -> Void)?
+
+    convenience init(with image: UIImage?) {
         self.init(type: .system)
+        setImage(image, for: .normal)
         setupButton()
     }
 
@@ -31,10 +34,13 @@ final class SquareButton: UIButton {
         layer.cornerRadius = 12
         layer.borderWidth = 0.5
         layer.borderColor = UIColor.white.cgColor
+        addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
 
         self.snp.makeConstraints {
             $0.size.equalTo(44)
         }
     }
 
+    @objc
+    private func buttonTapped() { isButtonTapped?() }
 }

@@ -42,38 +42,10 @@ class ViewController: UIViewController {
         return imageView
     }()
 
-    private lazy var reloadButton: SquareButton = {
-        let button = SquareButton()
-        button.setImage(.init(systemName: "arrow.trianglehead.2.clockwise"), for: .normal)
-        button.addTarget(self, action: #selector(reloadTapped), for: .touchUpInside)
-
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
-        longPress.minimumPressDuration = 1.2
-        button.addGestureRecognizer(longPress)
-
-        return button
-    }()
-
-    private lazy var previewButton: SquareButton = {
-        let button = SquareButton()
-        button.setImage(.init(systemName: "eye.slash"), for: .normal)
-        button.addTarget(self, action: #selector(previewTapped), for: .touchUpInside)
-        return button
-    }()
-
-    private lazy var galleryButton: SquareButton = {
-        let button = SquareButton()
-        button.setImage(.init(systemName: "photo.on.rectangle.angled"), for: .normal)
-        button.addTarget(self, action: #selector(loadImageFromLibrary), for: .touchUpInside)
-        return button
-    }()
-
-    private lazy var saveButton: SquareButton = {
-        let button = SquareButton()
-        button.setImage(.init(systemName: "tray.and.arrow.down"), for: .normal)
-        button.addTarget(self, action: #selector(saveImageToLibrary), for: .touchUpInside)
-        return button
-    }()
+    private let reloadButton = SquareButton(with: .init(systemName: "arrow.trianglehead.2.clockwise"))
+    private let previewButton = SquareButton(with: .init(systemName: "eye.slash"))
+    private let galleryButton = SquareButton(with: .init(systemName: "photo.on.rectangle.angled"))
+    private let saveButton = SquareButton(with: .init(systemName: "tray.and.arrow.down"))
 
     private let verticalSlider = TransparentSlider()
 
@@ -114,6 +86,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        buttonsBinding()
     }
 
     private func setupUI() {
@@ -166,6 +139,75 @@ class ViewController: UIViewController {
         }
     }
 
+    private func buttonsBinding() {
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
+        longPress.minimumPressDuration = 1.2
+        reloadButton.addGestureRecognizer(longPress)
+        reloadButton.isButtonTapped = { [weak self] in
+            guard let self else { return }
+            activityIndicator.startAnimating()
+            apiManager.getImage(
+                width: R.Device.screenScale * R.Device.screenWidth,
+                height: R.Device.screenScale * R.Device.screenHeight,
+                mode: imageMode) { [weak self] result in
+                    DispatchQueue.main.async { [weak self] in
+                        self?.activityIndicator.stopAnimating()
+                        switch result {
+                        case .success(let data):
+                            self?.backgroundImageView.image = UIImage(data: data)
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                            var newImage: UIImage
+                            repeat {
+                                newImage = R.Img.initialImages.randomElement() ?? UIImage()
+                            } while newImage.hash == self?.backgroundImageView.image?.hash
+                            self?.backgroundImageView.image = newImage
+                        }
+                    }
+                }
+
+        }
+
+        previewButton.isButtonTapped = { [weak self] in
+            self?.isPreview.toggle()
+        }
+
+        galleryButton.isButtonTapped = { [weak self] in
+            guard let self else { return }
+            activityIndicator.startAnimating()
+            present(photoPicker, animated: true) { [weak self] in
+                self?.activityIndicator.stopAnimating()
+            }
+        }
+
+        saveButton.isButtonTapped = { [weak self] in
+            guard let self else { return }
+            let image = buildWallpaper()
+
+            requestPhotoLibraryPermission { [weak self] granted in
+                guard let self else { return }
+
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    if granted {
+                        activityIndicator.startAnimating()
+                        UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+                    } else {
+                        showAlert(
+                            title: "Нет доступа к фото",
+                            message: "Пожалуйста, разрешите доступ к фото библиотеке в настройках приложения",
+                            primaryAction: UIAlertAction(title: "Настройки", style: .default) { _ in
+                                guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+                                UIApplication.shared.open(settingsUrl)
+                            },
+                            secondaryAction: UIAlertAction(title: "Отмена", style: .cancel)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Actions
     @objc
     private func sliderValueChanged(_ sender: UISlider) {
@@ -179,62 +221,6 @@ class ViewController: UIViewController {
     @objc
     private func transparencyChanged(_ sender: UISlider) {
         calendarView.backgroundColor = .darkCalendar.withAlphaComponent(CGFloat(sender.value))
-    }
-
-    @objc
-    private func reloadTapped() {
-        activityIndicator.startAnimating()
-        apiManager.getImage(
-            width: R.Device.screenScale * R.Device.screenWidth,
-            height: R.Device.screenScale * R.Device.screenHeight,
-            mode: imageMode) { [weak self] result in
-                DispatchQueue.main.async { [weak self] in
-                    self?.activityIndicator.stopAnimating()
-                    switch result {
-                    case .success(let data):
-                        self?.backgroundImageView.image = UIImage(data: data)
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        var newImage: UIImage
-                        repeat {
-                            newImage = R.Img.initialImages.randomElement() ?? UIImage()
-                        } while newImage.hash == self?.backgroundImageView.image?.hash
-                        self?.backgroundImageView.image = newImage
-                    }
-                }
-            }
-    }
-
-    @objc
-    private func loadImageFromLibrary() {
-        activityIndicator.startAnimating()
-        present(photoPicker, animated: true) { [weak self] in
-            self?.activityIndicator.stopAnimating()
-        }
-    }
-
-    @objc
-    private func previewTapped() {
-        isPreview.toggle()
-    }
-
-    @objc
-    private func saveImageToLibrary() {
-
-        let image = buildWallpaper()
-
-        // Запрашиваем разрешение на доступ к фото библиотеке
-        requestPhotoLibraryPermission { [weak self] granted in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                if granted {
-                    self.saveImageToPhotoLibrary(image)
-                } else {
-                    self.showPermissionAlert()
-                }
-            }
-        }
     }
 
     @objc
@@ -252,7 +238,6 @@ class ViewController: UIViewController {
         }
         view.layoutIfNeeded()
 
-        // Конвертируем snapshot в UIImage
         let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
         let image = renderer.image { context in
             view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
@@ -282,11 +267,6 @@ class ViewController: UIViewController {
         }
     }
 
-    private func saveImageToPhotoLibrary(_ image: UIImage) {
-        activityIndicator.startAnimating()
-        UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
-    }
-
     @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         DispatchQueue.main.async { [weak self] in
             self?.activityIndicator.stopAnimating()
@@ -296,18 +276,6 @@ class ViewController: UIViewController {
                 self?.showAlert(title: "Успешно", message: "Обои сохранены в галерею")
             }
         }
-    }
-
-    private func showPermissionAlert() {
-        showAlert(
-            title: "Нет доступа к фото",
-            message: "Пожалуйста, разрешите доступ к фото библиотеке в настройках приложения",
-            primaryAction: UIAlertAction(title: "Настройки", style: .default) { _ in
-                guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
-                UIApplication.shared.open(settingsUrl)
-            },
-            secondaryAction: UIAlertAction(title: "Отмена", style: .cancel)
-        )
     }
 }
 
@@ -327,20 +295,21 @@ extension ViewController: PHPickerViewControllerDelegate {
 extension ViewController: UIContextMenuInteractionDelegate {
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(actionProvider: { _ in
+        return UIContextMenuConfiguration(actionProvider: { [weak self] _ in
+            guard let self else { return nil }
             var childrens: [UIAction] = []
             ImageMode.allCases.forEach { mode in
                 let action = UIAction(title: mode.title, state: self.imageMode == mode ? .on : .off) { _ in
                     self.imageMode = mode
-                    self.reloadTapped()
+                    self.reloadButton.isButtonTapped?()
                 }
                 switch mode {
-                case .blur1, .blur2: action.attributes = .disabled
+//                case .blur1, .blur2: action.attributes = .disabled
                 default: break
                 }
                 childrens.append(action)
             }
-            return UIMenu(title: "Picture mode:", children: childrens)
+            return UIMenu(title: "", children: childrens)
         })
     }
 }

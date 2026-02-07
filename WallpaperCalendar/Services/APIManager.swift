@@ -49,13 +49,13 @@ enum ImageMode: String, CaseIterable {
     var title: String {
         switch self {
         case .standart:
-            return "Standart"
+            return "Стандарт"
         case .grayscale:
-            return "Grayscale"
+            return "Чёрно-белый"
         case .blur1:
-            return "Weak Blur"
+            return "Слабый блюр"
         case .blur2:
-            return "Strong Blur"
+            return "Сильный блюр"
         }
     }
 }
