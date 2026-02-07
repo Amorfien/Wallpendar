@@ -9,13 +9,52 @@
 import UIKit
 import SnapKit
 
-
-
 final class MonthCalendarView: UIView {
     
     // MARK: - Приватные свойства
 
+    enum Appearance {
+        case light
+        case dark
+    }
+
+    enum Material {
+        case alpha
+        case blur
+        case glass
+    }
+
+    var appearance: Appearance = .dark {
+        didSet {
+            guard appearance != oldValue else { return }
+            backgroundColor = appearance == .light
+            ? .white.withAlphaComponent(configuration.backgroundAlpha)
+            : .black.withAlphaComponent(configuration.backgroundAlpha)
+
+            layer.borderColor = appearance == .light
+            ? UIColor.black.withAlphaComponent(0.5).cgColor
+            : UIColor.white.withAlphaComponent(0.7).cgColor
+
+            self.configuration.dayTextColor = appearance == .light ? .black : .white
+            self.configuration.monthHeaderColor = appearance == .light ? .black : .white
+            self.configuration.weekdayHeaderColor = appearance == .light ? .darkText : .lightGray
+            self.configuration.backgroundColor = appearance == .light ? .lightCalendar : .darkCalendar
+            updateDayColors()
+            updateHeaderColors()
+            monthHeaderLabel.textColor = configuration.monthHeaderColor
+
+        }
+    }
+
+    var material: Material = .alpha {
+        didSet {
+            guard material != oldValue else { return }
+        }
+    }
+
     var isChangePosition: ((CGPoint) -> Void)?
+    var isLongPress: (() -> Void)?
+
     private var startCenter: CGPoint = .zero
 
     private var configuration: CalendarConfiguration
@@ -103,6 +142,12 @@ final class MonthCalendarView: UIView {
         reloadCalendar()
     }
 
+    func changeTransparency(to value: CGFloat) {
+        backgroundColor = configuration.backgroundColor
+            .withAlphaComponent(value)
+        configuration.backgroundAlpha = value
+    }
+
     // MARK: - Настройка
     private func setupView() {
         self.backgroundColor = configuration.backgroundColor
@@ -111,6 +156,10 @@ final class MonthCalendarView: UIView {
         self.layer.borderWidth = 2
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         self.clipsToBounds = true
+
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
+        longPress.minimumPressDuration = 1
+        self.addGestureRecognizer(longPress)
 
         addSubviews(mainStackView)
         mainStackView.snp.makeConstraints {
@@ -319,5 +368,10 @@ final class MonthCalendarView: UIView {
             startCenter.x += translation.x
             startCenter.y += translation.y
         }
+    }
+
+    @objc
+    private func longPress() {
+        isLongPress?()
     }
 }

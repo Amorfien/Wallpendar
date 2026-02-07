@@ -132,7 +132,7 @@ class ViewController: UIViewController {
     // MARK: - Binding
     private func buttonsBinding() {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
-        longPress.minimumPressDuration = 1.2
+        longPress.minimumPressDuration = 1
         reloadButton.addGestureRecognizer(longPress)
         reloadButton.isButtonTapped = { [weak self] in
             guard let self else { return }
@@ -208,13 +208,20 @@ class ViewController: UIViewController {
                 $0.height.equalTo(self.calendarHeight)
             }
         }
+
+        calendarView.isLongPress = { [weak self] in
+            guard let self else { return }
+            calendarView.addInteraction(contextMenu)
+        }
     }
 
     // MARK: - Actions
 
     @objc
     private func transparencyChanged(_ sender: UISlider) {
-        calendarView.backgroundColor = .darkCalendar.withAlphaComponent(CGFloat(sender.value))
+//        calendarView.backgroundColor = .darkCalendar.withAlphaComponent(CGFloat(sender.value))
+//        calendarView.configuration.backgroundAlpha = CGFloat(sender.value)
+        calendarView.changeTransparency(to: CGFloat(sender.value))
     }
 
     @objc
@@ -292,16 +299,56 @@ extension ViewController: UIContextMenuInteractionDelegate {
         return UIContextMenuConfiguration(actionProvider: { [weak self] _ in
             guard let self else { return nil }
             var childrens: [UIAction] = []
-            ImageMode.allCases.forEach { mode in
-                let action = UIAction(title: mode.title, state: self.imageMode == mode ? .on : .off) { _ in
-                    self.imageMode = mode
-                    self.reloadButton.isButtonTapped?()
+
+            if interaction.view is SquareButton {
+                ImageMode.allCases.forEach { mode in
+                    let action = UIAction(title: mode.title, state: self.imageMode == mode ? .on : .off) { _ in
+                        self.imageMode = mode
+                        self.reloadButton.isButtonTapped?()
+                    }
+                    switch mode {
+                    case .blur1, .blur2: action.attributes = .disabled
+                    default: break
+                    }
+                    childrens.append(action)
                 }
-                switch mode {
-//                case .blur1, .blur2: action.attributes = .disabled
-                default: break
+            } else if interaction.view is MonthCalendarView {
+                let light = UIAction(title: "Светлый",
+                                     image: UIImage(systemName: "sun.max"),
+                                     state: calendarView.appearance == .light ? .on : .off) { _ in
+                    self.calendarView.appearance = .light
                 }
-                childrens.append(action)
+                let dark = UIAction(title: "Тёмный",
+                                    image: UIImage(systemName: "moon"),
+                                    state: calendarView.appearance == .dark ? .on : .off) { _ in
+                    self.calendarView.appearance = .dark
+                }
+
+                let alpha = UIAction(title: "Затемнение",
+                                     image: UIImage(systemName: "aqi.medium"),
+                                     state: calendarView.material == .alpha ? .on : .off) { _ in
+                    self.calendarView.material = .alpha
+                }
+                let blur = UIAction(title: "Блюр",
+                                    image: UIImage(systemName: "app.background.dotted"),
+                                    state: calendarView.material == .blur ? .on : .off) { _ in
+                    self.calendarView.material = .blur
+                }
+                let glass = UIAction(title: "Стекло",
+                                     image: UIImage(systemName: "sparkles.2"),
+                                     state: calendarView.material == .glass ? .on : .off) { _ in
+                    self.calendarView.material = .glass
+                }
+
+                [alpha, blur, glass].forEach { $0.attributes = .disabled }
+
+                let primaryActions = UIMenu(title: "", options: .displayInline, children: [
+                    light, dark
+                ])
+                let secondaryActions = UIMenu(title: "", options: .displayInline, children: [
+                    alpha, blur, glass
+                ])
+                return UIMenu(title: "", children: [primaryActions, secondaryActions])
             }
             return UIMenu(title: "", children: childrens)
         })

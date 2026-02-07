@@ -8,13 +8,13 @@
 import UIKit
 
 struct CalendarConfiguration {
-    let backgroundColor: UIColor
-    let backgroundAlpha: CGFloat
-    let dayTextColor: UIColor
-    let weekendTextColor: UIColor
-    let weekdayHeaderColor: UIColor
-    let monthHeaderColor: UIColor
-    let dayFontSize: CGFloat
+    var backgroundColor: UIColor
+    var backgroundAlpha: CGFloat
+    var dayTextColor: UIColor
+    var weekendTextColor: UIColor
+    var weekdayHeaderColor: UIColor
+    var monthHeaderColor: UIColor
+    var dayFontSize: CGFloat
 
     init(backgroundColor: UIColor = .darkCalendar,
          backgroundAlpha: CGFloat = 0.5,
