@@ -21,7 +21,7 @@ class ViewController: UIViewController {
         }
     }
 
-    private lazy var viewsToHide: [UIView] = [
+    private lazy var viewsToHide: [UIControl] = [
         reloadButton,
         galleryButton,
         saveButton,
@@ -137,12 +137,14 @@ class ViewController: UIViewController {
         reloadButton.isButtonTapped = { [weak self] in
             guard let self else { return }
             activityIndicator.startAnimating()
+            viewsToHide.forEach { $0.isEnabled = false }
             apiManager.getImage(
                 width: R.Device.screenScale * R.Device.screenWidth,
                 height: R.Device.screenScale * R.Device.screenHeight,
                 mode: imageMode) { [weak self] result in
                     DispatchQueue.main.async { [weak self] in
                         self?.activityIndicator.stopAnimating()
+                        self?.viewsToHide.forEach { $0.isEnabled = true }
                         switch result {
                         case .success(let data):
                             self?.backgroundImageView.image = UIImage(data: data)
@@ -166,8 +168,10 @@ class ViewController: UIViewController {
         galleryButton.isButtonTapped = { [weak self] in
             guard let self else { return }
             activityIndicator.startAnimating()
+            viewsToHide.forEach { $0.isEnabled = false }
             present(photoPicker, animated: true) { [weak self] in
                 self?.activityIndicator.stopAnimating()
+                self?.viewsToHide.forEach { $0.isEnabled = true }
             }
         }
 
@@ -182,6 +186,7 @@ class ViewController: UIViewController {
                     guard let self else { return }
                     if granted {
                         activityIndicator.startAnimating()
+                        viewsToHide.forEach { $0.isEnabled = false }
                         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
                     } else {
                         showAlert(
@@ -271,6 +276,7 @@ class ViewController: UIViewController {
     @objc private func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         DispatchQueue.main.async { [weak self] in
             self?.activityIndicator.stopAnimating()
+            self?.viewsToHide.forEach { $0.isEnabled = true }
             if let error = error {
                 self?.showAlert(title: "Ошибка", message: "Не удалось сохранить изображение: \(error.localizedDescription)")
             } else {
