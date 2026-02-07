@@ -15,6 +15,9 @@ final class MonthCalendarView: UIView {
     
     // MARK: - Приватные свойства
 
+    var isChangePosition: ((CGPoint) -> Void)?
+    private var startCenter: CGPoint = .zero
+
     private var configuration: CalendarConfiguration
 
     private var currentMonthOffset = 0
@@ -42,14 +45,14 @@ final class MonthCalendarView: UIView {
 
     lazy var leftButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeLeft.withTintColor(.white.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeLeft.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
         button.tag = -1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
     }()
     lazy var rightButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeRight.withTintColor(.white.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeRight.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
         button.tag = 1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
@@ -64,6 +67,13 @@ final class MonthCalendarView: UIView {
         self.configuration = configuration
         super.init(frame: .zero)
         setupView()
+
+        addGestureRecognizer(
+            UIPanGestureRecognizer(
+                target: self,
+                action: #selector(pan(_:))
+            )
+        )
     }
     
     required init?(coder: NSCoder) {
@@ -133,7 +143,7 @@ final class MonthCalendarView: UIView {
         headerContainer.alignment = .top
 
         monthHeaderLabel.textColor = configuration.monthHeaderColor
-        monthHeaderLabel.font = .systemFont(ofSize: round(configuration.dayFontSize * 1.25), weight: .medium)
+        monthHeaderLabel.font = .systemFont(ofSize: round(configuration.dayFontSize * 1.25), weight: .semibold)
         headerContainer.snp.makeConstraints {
             $0.height.equalTo(32)
         }
@@ -178,7 +188,7 @@ final class MonthCalendarView: UIView {
         for _ in 0..<7 {
             let label = UILabel()
             label.textAlignment = .center
-            label.font = .systemFont(ofSize: configuration.dayFontSize)
+            label.font = .systemFont(ofSize: configuration.dayFontSize, weight: .medium)
             label.textColor = configuration.dayTextColor
             stack.addArrangedSubview(label)
             dayLabels.append(label)
@@ -296,6 +306,18 @@ final class MonthCalendarView: UIView {
         if newValue > -3 && newValue < 13 {
             changeMonth(increase: sender.tag > 0)
             currentMonthOffset += sender.tag
+        }
+    }
+
+    @objc
+    private func pan(_ g: UIPanGestureRecognizer) {
+        let translation = g.translation(in: superview)
+
+        isChangePosition?(.init(x: startCenter.x + translation.x, y: startCenter.y + translation.y))
+
+        if g.state == .ended {
+            startCenter.x += translation.x
+            startCenter.y += translation.y
         }
     }
 }

@@ -25,7 +25,6 @@ class ViewController: UIViewController {
         reloadButton,
         galleryButton,
         saveButton,
-        verticalSlider,
         transparencySlider,
         calendarView.leftButton,
         calendarView.rightButton
@@ -47,16 +46,13 @@ class ViewController: UIViewController {
     private let galleryButton = SquareButton(with: .init(systemName: "photo.on.rectangle.angled"))
     private let saveButton = SquareButton(with: .init(systemName: "tray.and.arrow.down"))
 
-    private let verticalSlider = TransparentSlider()
-
     private lazy var transparencySlider: UISlider = {
         let slider = UISlider()
         slider.value = 0.5
         slider.minimumValue = 0
         slider.maximumValue = 1
-        slider.tintColor = .white.withAlphaComponent(0.66)
         slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
-        slider.setThumbImage(UIImage.transparency.withTintColor(.white.withAlphaComponent(0.85), renderingMode: .alwaysOriginal), for: .normal)
+        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
         return slider
     }()
 
@@ -92,22 +88,27 @@ class ViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
-        view.addSubviews(backgroundImageView, calendarView, reloadButton, galleryButton, saveButton, previewButton, verticalSlider, transparencySlider, activityIndicator)
+        view.addSubviews(backgroundImageView,
+                         calendarView,
+                         reloadButton,
+                         galleryButton,
+                         saveButton,
+                         previewButton,
+                         transparencySlider,
+                         activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-
         calendarView.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
             $0.centerY.equalToSuperview()
-            $0.horizontalEdges.equalToSuperview().inset(48)
+            $0.width.equalTo(R.Device.screenWidth - 96)
             $0.height.equalTo(calendarHeight)
         }
-
         reloadButton.snp.makeConstraints {
             $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(4)
         }
-
         previewButton.snp.makeConstraints {
             $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(4)
         }
@@ -122,23 +123,13 @@ class ViewController: UIViewController {
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
         }
-
-        verticalSlider.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.centerX.equalToSuperview().offset((-R.Device.screenWidth / 2) + 32)
-            let thumbSize = verticalSlider.thumbImage(for: .normal)?.size.width ?? 56
-            $0.width.equalTo(R.Device.screenHeight + thumbSize - calendarHeight)
-        }
-        verticalSlider.transform = CGAffineTransform(rotationAngle: .pi / 2)
-        verticalSlider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
-
         transparencySlider.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.top.equalTo(calendarView.snp.bottom).offset(2)
-            $0.width.equalTo(calendarView)
+            $0.top.equalTo(calendarView.snp.bottom)
+            $0.centerX.width.equalTo(calendarView)
         }
     }
 
+    // MARK: - Binding
     private func buttonsBinding() {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
         longPress.minimumPressDuration = 1.2
@@ -206,17 +197,20 @@ class ViewController: UIViewController {
                 }
             }
         }
+
+        calendarView.isChangePosition = { [weak self] offset in
+            guard let self else { return }
+
+            calendarView.snp.remakeConstraints {
+                $0.centerX.equalToSuperview().offset(offset.x)
+                $0.centerY.equalToSuperview().offset(offset.y)
+                $0.width.equalTo(R.Device.screenWidth - 96)
+                $0.height.equalTo(self.calendarHeight)
+            }
+        }
     }
 
     // MARK: - Actions
-    @objc
-    private func sliderValueChanged(_ sender: UISlider) {
-        calendarView.snp.remakeConstraints {
-            $0.centerY.equalToSuperview().offset(sender.value)
-            $0.horizontalEdges.equalToSuperview().inset(48)
-            $0.height.equalTo(calendarHeight)
-        }
-    }
 
     @objc
     private func transparencyChanged(_ sender: UISlider) {

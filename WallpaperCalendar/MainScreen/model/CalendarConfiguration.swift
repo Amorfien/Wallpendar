@@ -19,9 +19,9 @@ struct CalendarConfiguration {
     init(backgroundColor: UIColor = .darkCalendar,
          backgroundAlpha: CGFloat = 0.5,
          dayTextColor: UIColor = .white,
-         weekendTextColor: UIColor = .systemRed,
+         weekendTextColor: UIColor = .weekend,
          weekdayHeaderColor: UIColor = .lightGray,
-         monthHeaderColor: UIColor = .white,
+         monthHeaderColor: UIColor = .white.withAlphaComponent(0.85),
          dayFontSize: CGFloat = 16) {
         self.backgroundColor = backgroundColor
         self.backgroundAlpha = backgroundAlpha
