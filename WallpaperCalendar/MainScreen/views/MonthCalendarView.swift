@@ -443,18 +443,29 @@ final class MonthCalendarView: UIView {
     @objc
     private func sizePan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
+        let newSize = CGSize(width: startSize.width + translation.x, height: startSize.height + translation.y)
 
         switch gesture.state {
         case .began:
             isStartDragging?()
         case .changed:
-            self.snp.updateConstraints {
-                $0.width.equalTo(startSize.width + translation.x)
-                $0.height.equalTo(startSize.height + translation.y)
+            if newSize.width > 200 {
+                self.snp.updateConstraints { $0.width.equalTo(newSize.width) }
+            }
+            if newSize.height > 180  {
+                self.snp.updateConstraints { $0.height.equalTo(newSize.height) }
             }
         case .ended:
-            startSize.width += translation.x
-            startSize.height += translation.y
+            if newSize.width > 200 {
+                startSize.width += translation.x
+            } else {
+                startSize.width = 200
+            }
+            if newSize.height > 180 {
+                startSize.height += translation.y
+            } else {
+                startSize.height = 180
+            }
             isEndDragging?()
         default: break
         }
