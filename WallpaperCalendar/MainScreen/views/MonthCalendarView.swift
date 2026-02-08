@@ -115,13 +115,15 @@ final class MonthCalendarView: UIView {
         slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
         slider.addTarget(self, action: #selector(transparencyStart), for: .touchDown)
         slider.addTarget(self, action: #selector(transparencyEnd), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
-        slider.tintColor = .tintColor.withAlphaComponent(0.8)
+        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        slider.tintColor = .tintColor.withAlphaComponent(0.5)
         return slider
     }()
     private lazy var sizeView: UIButton = {
         let view = UIButton()
-        view.backgroundColor = .tintColor.withAlphaComponent(0.8)
+        view.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right")?
+            .withTintColor(.tintColor.withAlphaComponent(0.8),
+                           renderingMode: .alwaysOriginal), for: .normal)
         view.addGestureRecognizer(
             UIPanGestureRecognizer(
                 target: self,
@@ -156,7 +158,7 @@ final class MonthCalendarView: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let largerBounds = CGRect(x: 0, y: 0, width: bounds.width + 12, height: bounds.height + 12)
+        let largerBounds = CGRect(x: 0, y: 0, width: bounds.width + 16, height: bounds.height + 16)
         return largerBounds.contains(point)
     }
 
@@ -197,7 +199,7 @@ final class MonthCalendarView: UIView {
             $0.size.equalTo(startSize)
         }
 
-        addSubviews(mainStackView, transparencySlider, sizeView)
+        addSubviews(mainStackView, leftButton, rightButton, transparencySlider, sizeView)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -207,8 +209,16 @@ final class MonthCalendarView: UIView {
             $0.width.equalToSuperview().inset(28)
         }
         sizeView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(12)
+            $0.trailing.bottom.equalToSuperview().offset(15)
             $0.size.equalTo(40)
+        }
+        leftButton.snp.makeConstraints {
+            $0.top.leading.equalToSuperview().offset(4)
+            $0.size.equalTo(44)
+        }
+        rightButton.snp.makeConstraints {
+            $0.top.trailing.equalToSuperview().inset(4)
+            $0.size.equalTo(44)
         }
 
         setupCalendarStructure()
@@ -232,7 +242,7 @@ final class MonthCalendarView: UIView {
 
     private func setupCalendarStructure() {
         // Добавляем заголовок месяца
-        let headerContainer = UIStackView(arrangedSubviews: [leftButton, monthHeaderLabel, rightButton])
+        let headerContainer = UIStackView(arrangedSubviews: [monthHeaderLabel])
         headerContainer.distribution = .fill
         headerContainer.alignment = .top
 
@@ -240,12 +250,6 @@ final class MonthCalendarView: UIView {
         monthHeaderLabel.font = .systemFont(ofSize: round(configuration.dayFontSize * 1.25), weight: .semibold)
         headerContainer.snp.makeConstraints {
             $0.height.equalTo(32)
-        }
-        leftButton.snp.makeConstraints {
-            $0.width.equalTo(44)
-        }
-        rightButton.snp.makeConstraints {
-            $0.width.equalTo(44)
         }
 
         mainStackView.addArrangedSubview(headerContainer)
@@ -408,17 +412,15 @@ final class MonthCalendarView: UIView {
         backgroundColor = configuration.backgroundColor
             .withAlphaComponent(CGFloat(sender.value))
         configuration.backgroundAlpha = CGFloat(sender.value)
+        sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(sender.value))
     }
-
     @objc
     private func transparencyStart() {
         viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = true }
-        print("Start")
     }
     @objc
     private func transparencyEnd() {
         viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = false }
-        print("End")
     }
 
     @objc
