@@ -67,6 +67,8 @@ final class MonthCalendarView: UIView {
 
     private var startPostion = CGPoint.zero
     private var startSize = CGSize(width: R.Device.screenWidth - 96, height: 250)
+    private let minWidth: CGFloat = 204
+    private let minHeight: CGFloat = 192
 
     private var configuration: CalendarConfiguration
 
@@ -449,22 +451,22 @@ final class MonthCalendarView: UIView {
         case .began:
             isStartDragging?()
         case .changed:
-            if newSize.width > 204 && newSize.width < R.Device.screenWidth {
+            if newSize.width > minWidth && newSize.width < R.Device.screenWidth {
                 self.snp.updateConstraints { $0.width.equalTo(newSize.width) }
             }
-            if newSize.height > 184 && newSize.height < R.Device.screenHeight / 2 {
+            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 2 {
                 self.snp.updateConstraints { $0.height.equalTo(newSize.height) }
             }
         case .ended:
-            if newSize.width > 204 && newSize.width < R.Device.screenWidth {
+            if newSize.width > minWidth && newSize.width < R.Device.screenWidth {
                 startSize.width += translation.x
             } else {
-                startSize.width = newSize.width < 204 ? 204 : R.Device.screenWidth
+                startSize.width = newSize.width < minWidth ? minWidth : R.Device.screenWidth
             }
-            if newSize.height > 184 && newSize.height < R.Device.screenHeight / 2 {
+            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 2 {
                 startSize.height += translation.y
             } else {
-                startSize.height = newSize.height < 184 ? 184 : R.Device.screenHeight / 2
+                startSize.height = newSize.height < minHeight ? minHeight : R.Device.screenHeight / 2
             }
             isEndDragging?()
         default: break
