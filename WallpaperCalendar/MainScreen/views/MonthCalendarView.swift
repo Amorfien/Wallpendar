@@ -53,6 +53,8 @@ final class MonthCalendarView: UIView {
     }
 
     var isChangePosition: ((CGPoint) -> Void)?
+    var isStartDragging: (() -> Void)?
+    var isEndDragging: (() -> Void)?
     var isLongPress: (() -> Void)?
 
     private var startCenter: CGPoint = .zero
@@ -362,11 +364,16 @@ final class MonthCalendarView: UIView {
     private func pan(_ g: UIPanGestureRecognizer) {
         let translation = g.translation(in: superview)
 
-        isChangePosition?(.init(x: startCenter.x + translation.x, y: startCenter.y + translation.y))
-
-        if g.state == .ended {
+        switch g.state {
+        case .began:
+            isStartDragging?()
+        case .changed:
+            isChangePosition?(.init(x: startCenter.x + translation.x, y: startCenter.y + translation.y))
+        case .ended:
             startCenter.x += translation.x
             startCenter.y += translation.y
+            isEndDragging?()
+        default: break
         }
     }
 

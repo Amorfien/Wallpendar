@@ -213,6 +213,14 @@ class ViewController: UIViewController {
                 $0.height.equalTo(self.calendarHeight)
             }
         }
+        calendarView.isStartDragging = { [weak self] in
+            guard let self else { return }
+            isPreview = true
+        }
+        calendarView.isEndDragging = { [weak self] in
+            guard let self else { return }
+            isPreview = false
+        }
 
         calendarView.isLongPress = { [weak self] in
             guard let self else { return }
@@ -221,11 +229,8 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Actions
-
     @objc
     private func transparencyChanged(_ sender: UISlider) {
-//        calendarView.backgroundColor = .darkCalendar.withAlphaComponent(CGFloat(sender.value))
-//        calendarView.configuration.backgroundAlpha = CGFloat(sender.value)
         calendarView.changeTransparency(to: CGFloat(sender.value))
     }
 
