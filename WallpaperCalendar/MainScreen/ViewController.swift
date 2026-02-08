@@ -24,16 +24,11 @@ class ViewController: UIViewController {
     private lazy var viewsToHide: [UIControl] = [
         reloadButton,
         galleryButton,
-        saveButton,
-        transparencySlider,
-        calendarView.leftButton,
-        calendarView.rightButton
-    ]
+        saveButton
+    ] + calendarView.viewsToHide
 
     private let apiManager = APIManager()
     private var imageMode: ImageMode = .standart
-
-    private var calendarHeight: CGFloat = 250
 
     private lazy var backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: R.Img.initialImages.randomElement())
@@ -45,16 +40,6 @@ class ViewController: UIViewController {
     private let previewButton = SquareButton(with: .init(systemName: "eye.slash"))
     private let galleryButton = SquareButton(with: .init(systemName: "photo.on.rectangle.angled"))
     private let saveButton = SquareButton(with: .init(systemName: "tray.and.arrow.down"))
-
-    private lazy var transparencySlider: UISlider = {
-        let slider = UISlider()
-        slider.value = 0.5
-        slider.minimumValue = 0
-        slider.maximumValue = 1
-        slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
-        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
-        return slider
-    }()
 
     private var calendarView = MonthCalendarView()
 
@@ -94,7 +79,6 @@ class ViewController: UIViewController {
                          galleryButton,
                          saveButton,
                          previewButton,
-                         transparencySlider,
                          activityIndicator)
 
         backgroundImageView.snp.makeConstraints {
@@ -103,8 +87,6 @@ class ViewController: UIViewController {
         calendarView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(R.Device.screenWidth - 96)
-            $0.height.equalTo(calendarHeight)
         }
         reloadButton.snp.makeConstraints {
             $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(4)
@@ -122,10 +104,6 @@ class ViewController: UIViewController {
         }
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
-        }
-        transparencySlider.snp.makeConstraints {
-            $0.top.equalTo(calendarView.snp.bottom)
-            $0.centerX.width.equalTo(calendarView)
         }
     }
 
@@ -206,11 +184,9 @@ class ViewController: UIViewController {
         calendarView.isChangePosition = { [weak self] offset in
             guard let self else { return }
 
-            calendarView.snp.remakeConstraints {
+            calendarView.snp.updateConstraints {
                 $0.centerX.equalToSuperview().offset(offset.x)
                 $0.centerY.equalToSuperview().offset(offset.y)
-                $0.width.equalTo(R.Device.screenWidth - 96)
-                $0.height.equalTo(self.calendarHeight)
             }
         }
         calendarView.isStartDragging = { [weak self] in
@@ -229,11 +205,6 @@ class ViewController: UIViewController {
     }
 
     // MARK: - Actions
-    @objc
-    private func transparencyChanged(_ sender: UISlider) {
-        calendarView.changeTransparency(to: CGFloat(sender.value))
-    }
-
     @objc
     private func longPress() {
         reloadButton.addInteraction(contextMenu)

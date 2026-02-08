@@ -55,9 +55,18 @@ final class MonthCalendarView: UIView {
     var isChangePosition: ((CGPoint) -> Void)?
     var isStartDragging: (() -> Void)?
     var isEndDragging: (() -> Void)?
+
     var isLongPress: (() -> Void)?
 
-    private var startCenter: CGPoint = .zero
+    lazy var viewsToHide: [UIControl] = [
+        leftButton,
+        rightButton,
+        transparencySlider,
+        sizeView
+    ]
+
+    private var startPostion = CGPoint.zero
+    private var startSize = CGSize(width: R.Device.screenWidth - 96, height: 250)
 
     private var configuration: CalendarConfiguration
 
@@ -84,19 +93,42 @@ final class MonthCalendarView: UIView {
         return label
     }()
 
-    lazy var leftButton: UIButton = {
+    private lazy var leftButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeLeft.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeLeft.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
         button.tag = -1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
     }()
-    lazy var rightButton: UIButton = {
+    private lazy var rightButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeRight.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeRight.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
         button.tag = 1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
+    }()
+    private lazy var transparencySlider: UISlider = {
+        let slider = UISlider()
+        slider.value = 0.5
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
+        slider.addTarget(self, action: #selector(transparencyStart), for: .touchDown)
+        slider.addTarget(self, action: #selector(transparencyEnd), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor, renderingMode: .alwaysOriginal), for: .normal)
+        slider.tintColor = .tintColor.withAlphaComponent(0.8)
+        return slider
+    }()
+    private lazy var sizeView: UIButton = {
+        let view = UIButton()
+        view.backgroundColor = .tintColor.withAlphaComponent(0.8)
+        view.addGestureRecognizer(
+            UIPanGestureRecognizer(
+                target: self,
+                action: #selector(sizePan(_:))
+            )
+        )
+        return view
     }()
 
     private var dayLabels: [UILabel] = []
@@ -112,7 +144,7 @@ final class MonthCalendarView: UIView {
         addGestureRecognizer(
             UIPanGestureRecognizer(
                 target: self,
-                action: #selector(pan(_:))
+                action: #selector(positionPan(_:))
             )
         )
     }
@@ -121,6 +153,11 @@ final class MonthCalendarView: UIView {
         self.configuration = CalendarConfiguration()
         super.init(coder: coder)
         setupView()
+    }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let largerBounds = CGRect(x: 0, y: 0, width: bounds.width + 12, height: bounds.height + 12)
+        return largerBounds.contains(point)
     }
 
     // MARK: - Public Methods
@@ -144,12 +181,6 @@ final class MonthCalendarView: UIView {
         reloadCalendar()
     }
 
-    func changeTransparency(to value: CGFloat) {
-        backgroundColor = configuration.backgroundColor
-            .withAlphaComponent(value)
-        configuration.backgroundAlpha = value
-    }
-
     // MARK: - Настройка
     private func setupView() {
         self.backgroundColor = configuration.backgroundColor
@@ -157,15 +188,27 @@ final class MonthCalendarView: UIView {
         self.layer.cornerRadius = 16
         self.layer.borderWidth = 2
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
-        self.clipsToBounds = true
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
         longPress.minimumPressDuration = 1
         self.addGestureRecognizer(longPress)
 
-        addSubviews(mainStackView)
+        self.snp.makeConstraints {
+            $0.size.equalTo(startSize)
+        }
+
+        addSubviews(mainStackView, transparencySlider, sizeView)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
+        }
+        transparencySlider.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.top.equalTo(self.snp.bottom).inset((transparencySlider.thumbImage(for: .normal)?.size.height ?? 0) / 2 + 4)
+            $0.width.equalToSuperview().inset(28)
+        }
+        sizeView.snp.makeConstraints {
+            $0.trailing.bottom.equalToSuperview().offset(12)
+            $0.size.equalTo(40)
         }
 
         setupCalendarStructure()
@@ -361,17 +404,55 @@ final class MonthCalendarView: UIView {
     }
 
     @objc
-    private func pan(_ g: UIPanGestureRecognizer) {
-        let translation = g.translation(in: superview)
+    private func transparencyChanged(_ sender: UISlider) {
+        backgroundColor = configuration.backgroundColor
+            .withAlphaComponent(CGFloat(sender.value))
+        configuration.backgroundAlpha = CGFloat(sender.value)
+    }
 
-        switch g.state {
+    @objc
+    private func transparencyStart() {
+        viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = true }
+        print("Start")
+    }
+    @objc
+    private func transparencyEnd() {
+        viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = false }
+        print("End")
+    }
+
+    @objc
+    private func positionPan(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: superview)
+
+        switch gesture.state {
         case .began:
             isStartDragging?()
         case .changed:
-            isChangePosition?(.init(x: startCenter.x + translation.x, y: startCenter.y + translation.y))
+            isChangePosition?(.init(x: startPostion.x + translation.x, y: startPostion.y + translation.y))
         case .ended:
-            startCenter.x += translation.x
-            startCenter.y += translation.y
+            startPostion.x += translation.x
+            startPostion.y += translation.y
+            isEndDragging?()
+        default: break
+        }
+    }
+
+    @objc
+    private func sizePan(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: superview)
+
+        switch gesture.state {
+        case .began:
+            isStartDragging?()
+        case .changed:
+            self.snp.updateConstraints {
+                $0.width.equalTo(startSize.width + translation.x)
+                $0.height.equalTo(startSize.height + translation.y)
+            }
+        case .ended:
+            startSize.width += translation.x
+            startSize.height += translation.y
             isEndDragging?()
         default: break
         }
