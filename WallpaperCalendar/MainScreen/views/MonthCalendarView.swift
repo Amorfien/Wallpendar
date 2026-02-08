@@ -449,22 +449,22 @@ final class MonthCalendarView: UIView {
         case .began:
             isStartDragging?()
         case .changed:
-            if newSize.width > 200 {
+            if newSize.width > 204 && newSize.width < R.Device.screenWidth {
                 self.snp.updateConstraints { $0.width.equalTo(newSize.width) }
             }
-            if newSize.height > 180  {
+            if newSize.height > 184 && newSize.height < R.Device.screenHeight / 2 {
                 self.snp.updateConstraints { $0.height.equalTo(newSize.height) }
             }
         case .ended:
-            if newSize.width > 200 {
+            if newSize.width > 204 && newSize.width < R.Device.screenWidth {
                 startSize.width += translation.x
             } else {
-                startSize.width = 200
+                startSize.width = newSize.width < 204 ? 204 : R.Device.screenWidth
             }
-            if newSize.height > 180 {
+            if newSize.height > 184 && newSize.height < R.Device.screenHeight / 2 {
                 startSize.height += translation.y
             } else {
-                startSize.height = 180
+                startSize.height = newSize.height < 184 ? 184 : R.Device.screenHeight / 2
             }
             isEndDragging?()
         default: break
