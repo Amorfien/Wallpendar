@@ -52,7 +52,8 @@ final class MonthCalendarView: UIView {
         }
     }
 
-    var isChangePosition: ((CGPoint) -> Void)?
+    var isChangeXPosition: ((CGFloat) -> Void)?
+    var isChangeYPosition: ((CGFloat) -> Void)?
     var isStartDragging: (() -> Void)?
     var isEndDragging: (() -> Void)?
 
@@ -113,7 +114,7 @@ final class MonthCalendarView: UIView {
         slider.addTarget(self, action: #selector(transparencyStart), for: .touchDown)
         slider.addTarget(self, action: #selector(transparencyEnd), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
-        slider.tintColor = .tintColor.withAlphaComponent(0.5)
+        slider.tintColor = .tintColor.withAlphaComponent(0.8)
         return slider
     }()
     private lazy var sizeView: UIButton = {
@@ -408,7 +409,7 @@ final class MonthCalendarView: UIView {
         backgroundColor = configuration.backgroundColor
             .withAlphaComponent(CGFloat(sender.value))
         configuration.backgroundAlpha = CGFloat(sender.value)
-        sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(sender.value))
+        sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(sender.value + 0.3))
     }
     @objc
     private func transparencyStart() {
@@ -422,15 +423,35 @@ final class MonthCalendarView: UIView {
     @objc
     private func positionPan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
+        let newOffset = CGPoint(x: configuration.positionOffset.x + translation.x,
+                                y: configuration.positionOffset.y + translation.y)
 
         switch gesture.state {
         case .began:
             isStartDragging?()
         case .changed:
-            isChangePosition?(.init(x: configuration.positionOffset.x + translation.x, y: configuration.positionOffset.y + translation.y))
+            if newOffset.x >= 0
+                && newOffset.x <= R.Device.screenWidth - configuration.size.width {
+                isChangeXPosition?(newOffset.x)
+            }
+            if newOffset.y >= 0
+                && newOffset.y <= R.Device.screenHeight - configuration.size.height {
+                isChangeYPosition?(newOffset.y)
+            }
         case .ended:
-            configuration.positionOffset.x += translation.x
-            configuration.positionOffset.y += translation.y
+            if newOffset.x >= 0
+                && newOffset.x <= R.Device.screenWidth - configuration.size.width {
+                configuration.positionOffset.x += translation.x
+            } else {
+                configuration.positionOffset.x = newOffset.x < 0 ? 0 : R.Device.screenWidth - configuration.size.width
+            }
+            if newOffset.y >= 0
+                && newOffset.y <= R.Device.screenHeight - configuration.size.height
+            {
+                configuration.positionOffset.y += translation.y
+            } else {
+                configuration.positionOffset.y = newOffset.y < 0 ? 0 : R.Device.screenHeight - configuration.size.height
+            }
             isEndDragging?()
         default: break
         }

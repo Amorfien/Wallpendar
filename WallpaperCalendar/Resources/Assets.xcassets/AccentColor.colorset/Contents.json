@@ -2,12 +2,12 @@
   "colors" : [
     {
       "color" : {
-        "color-space" : "extended-srgb",
+        "color-space" : "srgb",
         "components" : {
           "alpha" : "1.000",
-          "blue" : "0.449",
-          "green" : "0.908",
-          "red" : "0.797"
+          "blue" : "1.000",
+          "green" : "0.590",
+          "red" : "0.000"
         }
       },
       "idiom" : "universal"

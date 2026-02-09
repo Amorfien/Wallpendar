@@ -189,12 +189,16 @@ class ViewController: UIViewController {
             }
         }
 
-        calendarView.isChangePosition = { [weak self] offset in
+        calendarView.isChangeXPosition = { [weak self] offsetX in
             guard let self else { return }
-
             calendarView.snp.updateConstraints {
-                $0.leading.equalToSuperview().offset(offset.x)
-                $0.top.equalToSuperview().offset(offset.y)
+                $0.leading.equalToSuperview().offset(offsetX)
+            }
+        }
+        calendarView.isChangeYPosition = { [weak self] offsetY in
+            guard let self else { return }
+            calendarView.snp.updateConstraints {
+                $0.top.equalToSuperview().offset(offsetY)
             }
         }
         calendarView.isStartDragging = { [weak self] in
