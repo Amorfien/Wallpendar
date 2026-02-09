@@ -65,11 +65,6 @@ final class MonthCalendarView: UIView {
         sizeView
     ]
 
-    private var startPostion = CGPoint.zero
-    private var startSize = CGSize(width: R.Device.screenWidth - 96, height: 250)
-    private let minWidth: CGFloat = 204
-    private let minHeight: CGFloat = 192
-
     private var configuration: CalendarConfiguration
 
     private var currentMonthOffset = 0
@@ -138,9 +133,8 @@ final class MonthCalendarView: UIView {
     private var dayLabels: [UILabel] = []
     private let weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
     
-    // MARK: - Инициализация
-
-    init(with configuration: CalendarConfiguration = .init()) {
+    // MARK: - Initialization
+    init(with configuration: CalendarConfiguration) {
         self.configuration = configuration
         super.init(frame: .zero)
         setupView()
@@ -154,7 +148,7 @@ final class MonthCalendarView: UIView {
     }
     
     required init?(coder: NSCoder) {
-        self.configuration = CalendarConfiguration()
+        self.configuration = CalendarConfiguration(size: .zero, positionOffset: .zero)
         super.init(coder: coder)
         setupView()
     }
@@ -185,7 +179,7 @@ final class MonthCalendarView: UIView {
         reloadCalendar()
     }
 
-    // MARK: - Настройка
+    // MARK: - SetupUI
     private func setupView() {
         self.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(configuration.backgroundAlpha)
@@ -198,7 +192,7 @@ final class MonthCalendarView: UIView {
         self.addGestureRecognizer(longPress)
 
         self.snp.makeConstraints {
-            $0.size.equalTo(startSize)
+            $0.size.equalTo(configuration.size)
         }
 
         addSubviews(mainStackView, leftButton, rightButton, transparencySlider, sizeView)
@@ -297,8 +291,7 @@ final class MonthCalendarView: UIView {
         return stack
     }
     
-    // MARK: - Обновление календаря
-    
+    // MARK: - Update Calendar
     private func updateCalendar() {
         // Обновляем заголовок
         let dateFormatter = DateFormatter()
@@ -400,6 +393,7 @@ final class MonthCalendarView: UIView {
         dayLabels.forEach { $0.font = .systemFont(ofSize: configuration.dayFontSize) }
     }
 
+    // MARK: - Actions
     @objc
     private func stepperValueChanged(_ sender: UIButton) {
         let newValue = currentMonthOffset + sender.tag
@@ -433,10 +427,10 @@ final class MonthCalendarView: UIView {
         case .began:
             isStartDragging?()
         case .changed:
-            isChangePosition?(.init(x: startPostion.x + translation.x, y: startPostion.y + translation.y))
+            isChangePosition?(.init(x: configuration.positionOffset.x + translation.x, y: configuration.positionOffset.y + translation.y))
         case .ended:
-            startPostion.x += translation.x
-            startPostion.y += translation.y
+            configuration.positionOffset.x += translation.x
+            configuration.positionOffset.y += translation.y
             isEndDragging?()
         default: break
         }
@@ -445,7 +439,9 @@ final class MonthCalendarView: UIView {
     @objc
     private func sizePan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
-        let newSize = CGSize(width: startSize.width + translation.x, height: startSize.height + translation.y)
+        let newSize = CGSize(width: configuration.size.width + translation.x, height: configuration.size.height + translation.y)
+        let minWidth = configuration.minSize.width
+        let minHeight = configuration.minSize.height
 
         switch gesture.state {
         case .began:
@@ -459,14 +455,14 @@ final class MonthCalendarView: UIView {
             }
         case .ended:
             if newSize.width > minWidth && newSize.width < R.Device.screenWidth {
-                startSize.width += translation.x
+                configuration.size.width += translation.x
             } else {
-                startSize.width = newSize.width < minWidth ? minWidth : R.Device.screenWidth
+                configuration.size.width = newSize.width < minWidth ? minWidth : R.Device.screenWidth
             }
             if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 2 {
-                startSize.height += translation.y
+                configuration.size.height += translation.y
             } else {
-                startSize.height = newSize.height < minHeight ? minHeight : R.Device.screenHeight / 2
+                configuration.size.height = newSize.height < minHeight ? minHeight : R.Device.screenHeight / 2
             }
             isEndDragging?()
         default: break

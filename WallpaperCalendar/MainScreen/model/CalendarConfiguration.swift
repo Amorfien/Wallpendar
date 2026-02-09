@@ -8,6 +8,8 @@
 import UIKit
 
 struct CalendarConfiguration {
+    var size: CGSize
+    var positionOffset: CGPoint
     var backgroundColor: UIColor
     var backgroundAlpha: CGFloat
     var dayTextColor: UIColor
@@ -15,14 +17,20 @@ struct CalendarConfiguration {
     var weekdayHeaderColor: UIColor
     var monthHeaderColor: UIColor
     var dayFontSize: CGFloat
+    let minSize: CGSize
 
-    init(backgroundColor: UIColor = .darkCalendar,
+    init(size: CGSize,
+         positionOffset: CGPoint,
+         backgroundColor: UIColor = .darkCalendar,
          backgroundAlpha: CGFloat = 0.5,
          dayTextColor: UIColor = .white,
          weekendTextColor: UIColor = .weekend,
          weekdayHeaderColor: UIColor = .lightGray,
          monthHeaderColor: UIColor = .white.withAlphaComponent(0.85),
-         dayFontSize: CGFloat = 16) {
+         dayFontSize: CGFloat = 16,
+         minSize: CGSize = .init(width: 204, height: 192)) {
+        self.size = size
+        self.positionOffset = positionOffset
         self.backgroundColor = backgroundColor
         self.backgroundAlpha = backgroundAlpha
         self.dayTextColor = dayTextColor
@@ -30,5 +38,6 @@ struct CalendarConfiguration {
         self.weekdayHeaderColor = weekdayHeaderColor
         self.monthHeaderColor = monthHeaderColor
         self.dayFontSize = dayFontSize
+        self.minSize = minSize
     }
 }

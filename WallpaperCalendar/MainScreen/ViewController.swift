@@ -30,6 +30,11 @@ class ViewController: UIViewController {
     private let apiManager = APIManager()
     private var imageMode: ImageMode = .standart
 
+    private let startCalendarSize = CGSize(width: R.Device.screenWidth - 96, height: 250)
+    private lazy var startCalendarPositionOffset = CGPoint(
+        x: (R.Device.screenWidth - startCalendarSize.width) / 2,
+        y: R.Device.screenHeight / 2)
+
     private lazy var backgroundImageView: UIImageView = {
         let imageView = UIImageView(image: R.Img.initialImages.randomElement())
         imageView.contentMode = .scaleAspectFill
@@ -41,7 +46,9 @@ class ViewController: UIViewController {
     private let galleryButton = SquareButton(with: .init(systemName: "photo.on.rectangle.angled"))
     private let saveButton = SquareButton(with: .init(systemName: "tray.and.arrow.down"))
 
-    private var calendarView = MonthCalendarView()
+    private lazy var calendarView = MonthCalendarView(
+        with: CalendarConfiguration.init(size: startCalendarSize,
+                                         positionOffset: startCalendarPositionOffset))
 
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
@@ -70,6 +77,7 @@ class ViewController: UIViewController {
         buttonsBinding()
     }
 
+    // MARK: - Setup UI
     private func setupUI() {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
@@ -85,8 +93,8 @@ class ViewController: UIViewController {
             $0.edges.equalToSuperview()
         }
         calendarView.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.centerY.equalToSuperview()
+            $0.leading.equalToSuperview().offset(startCalendarPositionOffset.x)
+            $0.top.equalToSuperview().offset(startCalendarPositionOffset.y)
         }
         reloadButton.snp.makeConstraints {
             $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(6)
@@ -185,8 +193,8 @@ class ViewController: UIViewController {
             guard let self else { return }
 
             calendarView.snp.updateConstraints {
-                $0.centerX.equalToSuperview().offset(offset.x)
-                $0.centerY.equalToSuperview().offset(offset.y)
+                $0.leading.equalToSuperview().offset(offset.x)
+                $0.top.equalToSuperview().offset(offset.y)
             }
         }
         calendarView.isStartDragging = { [weak self] in
@@ -262,6 +270,7 @@ class ViewController: UIViewController {
     }
 }
 
+// MARK: - Photo Picker Delegate
 extension ViewController: PHPickerViewControllerDelegate {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
@@ -275,6 +284,7 @@ extension ViewController: PHPickerViewControllerDelegate {
     }
 }
 
+// MARK: - Context Menu Delegate
 extension ViewController: UIContextMenuInteractionDelegate {
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
