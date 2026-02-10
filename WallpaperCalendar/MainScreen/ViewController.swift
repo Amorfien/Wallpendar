@@ -15,7 +15,7 @@ class ViewController: UIViewController {
         didSet {
             setNeedsStatusBarAppearanceUpdate()
             setNeedsUpdateOfHomeIndicatorAutoHidden()
-            viewsToHide.forEach { $0.isHidden = isPreview }
+            viewsToHide.forEach { $0.alpha = isPreview ? 0 : 1 }
             previewButton.setImage(.init(systemName: isPreview ? "eye" : "eye.slash"), for: .normal)
             previewButton.alpha = isPreview ? 0.25 : 1
         }
@@ -307,7 +307,6 @@ extension ViewController: UIContextMenuInteractionDelegate {
                                     state: calendarView.appearance == .dark ? .on : .off) { _ in
                     self.calendarView.appearance = .dark
                 }
-
                 let alpha = UIAction(title: "Затемнение",
                                      image: UIImage(systemName: "aqi.medium"),
                                      state: calendarView.material == .alpha ? .on : .off) { _ in
@@ -323,8 +322,6 @@ extension ViewController: UIContextMenuInteractionDelegate {
                                      state: calendarView.material == .glass ? .on : .off) { _ in
                     self.calendarView.material = .glass
                 }
-
-                [alpha, blur, glass].forEach { $0.attributes = .disabled }
 
                 let primaryActions = UIMenu(title: "", options: .displayInline, children: [
                     light, dark

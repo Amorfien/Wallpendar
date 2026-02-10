@@ -26,14 +26,15 @@ final class MonthCalendarView: UIView {
 
     var appearance: Appearance = .dark {
         didSet {
-            guard appearance != oldValue else { return }
             contentView.backgroundColor = appearance == .light
-            ? .white.withAlphaComponent(configuration.backgroundAlpha)
-            : .black.withAlphaComponent(configuration.backgroundAlpha)
+            ? material == .alpha ? .white.withAlphaComponent(configuration.backgroundAlpha) : .clear
+            : material == .alpha ? .black.withAlphaComponent(configuration.backgroundAlpha) : .clear
 
-            layer.borderColor = appearance == .light
-            ? UIColor.black.withAlphaComponent(0.5).cgColor
-            : UIColor.white.withAlphaComponent(0.7).cgColor
+            contentView.layer.borderColor = appearance == .light
+            ? material == .alpha ? UIColor.black.withAlphaComponent(0.5).cgColor : UIColor.clear.cgColor
+            : material == .alpha ? UIColor.white.withAlphaComponent(0.7).cgColor : UIColor.clear.cgColor
+
+            blurView.effect = appearance == .light ? lightBlur : darkBlur
 
             self.configuration.dayTextColor = appearance == .light ? .black : .white
             self.configuration.monthHeaderColor = appearance == .light ? .black : .white
@@ -42,13 +43,15 @@ final class MonthCalendarView: UIView {
             updateDayColors()
             updateHeaderColors()
             monthHeaderLabel.textColor = configuration.monthHeaderColor
-
         }
     }
 
     var material: Material = .alpha {
         didSet {
             guard material != oldValue else { return }
+            blurView.isHidden = material != .blur
+            transparencySlider.isHidden = material != .alpha
+            appearance = .dark
         }
     }
 
@@ -81,7 +84,23 @@ final class MonthCalendarView: UIView {
         view.layer.cornerRadius = 16
         view.layer.borderWidth = 2
         view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
+        view.layer.masksToBounds = true
+        view.clipsToBounds = true
         return view
+    }()
+
+    private let darkBlur = UIBlurEffect(style: .systemThinMaterialDark)
+    private let lightBlur = UIBlurEffect(style: .systemThinMaterialLight)
+
+    private lazy var blurView: UIVisualEffectView = {
+        let blurView = UIVisualEffectView(effect: darkBlur)
+        blurView.isUserInteractionEnabled = false
+        blurView.layer.cornerRadius = 16
+        blurView.layer.borderWidth = 0.33
+        blurView.layer.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        blurView.clipsToBounds = true
+        blurView.isHidden = true
+        return blurView
     }()
 
     private let mainStackView: UIStackView = {
@@ -199,6 +218,10 @@ final class MonthCalendarView: UIView {
         contentView.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(configuration.backgroundAlpha)
 
+        contentView.addSubview(blurView)
+        blurView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         contentView.addSubview(mainStackView)
         addSubviews(leftButton, rightButton, transparencySlider, sizeView)
         mainStackView.snp.makeConstraints {
