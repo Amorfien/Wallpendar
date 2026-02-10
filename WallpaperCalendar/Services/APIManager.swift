@@ -43,8 +43,7 @@ final class APIManager {
 enum ImageMode: String, CaseIterable {
     case standart = ""
     case grayscale = "?grayscale=1" // 0-1
-    case blur1 = "?blur=3" // 0...10
-    case blur2 = "?blur=7"
+    case blur = "?blur=10" // 0...10
 
     var title: String {
         switch self {
@@ -52,10 +51,8 @@ enum ImageMode: String, CaseIterable {
             return "Стандарт"
         case .grayscale:
             return "Чёрно-белый"
-        case .blur1:
-            return "Слабый блюр"
-        case .blur2:
-            return "Сильный блюр"
+        case .blur:
+            return "Блюр"
         }
     }
 }

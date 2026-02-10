@@ -27,7 +27,7 @@ final class MonthCalendarView: UIView {
     var appearance: Appearance = .dark {
         didSet {
             guard appearance != oldValue else { return }
-            backgroundColor = appearance == .light
+            contentView.backgroundColor = appearance == .light
             ? .white.withAlphaComponent(configuration.backgroundAlpha)
             : .black.withAlphaComponent(configuration.backgroundAlpha)
 
@@ -57,8 +57,6 @@ final class MonthCalendarView: UIView {
     var isStartDragging: (() -> Void)?
     var isEndDragging: (() -> Void)?
 
-    var isLongPress: (() -> Void)?
-
     lazy var viewsToHide: [UIControl] = [
         leftButton,
         rightButton,
@@ -76,6 +74,14 @@ final class MonthCalendarView: UIView {
         dateComponents.month = Calendar.current.component(.month, from: .now)
         dateComponents.day = 1
         return dateComponents
+    }()
+
+    let contentView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 16
+        view.layer.borderWidth = 2
+        view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
+        return view
     }()
 
     private let mainStackView: UIStackView = {
@@ -182,17 +188,19 @@ final class MonthCalendarView: UIView {
 
     // MARK: - SetupUI
     private func setupView() {
-        self.backgroundColor = configuration.backgroundColor
-            .withAlphaComponent(configuration.backgroundAlpha)
-        self.layer.cornerRadius = 16
-        self.layer.borderWidth = 2
-        self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
-
         self.snp.makeConstraints {
             $0.size.equalTo(configuration.size)
         }
 
-        addSubviews(mainStackView, leftButton, rightButton, transparencySlider, sizeView)
+        self.addSubview(contentView)
+        contentView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        contentView.backgroundColor = configuration.backgroundColor
+            .withAlphaComponent(configuration.backgroundAlpha)
+
+        contentView.addSubview(mainStackView)
+        addSubviews(leftButton, rightButton, transparencySlider, sizeView)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -402,7 +410,7 @@ final class MonthCalendarView: UIView {
 
     @objc
     private func transparencyChanged(_ sender: UISlider) {
-        backgroundColor = configuration.backgroundColor
+        contentView.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(CGFloat(sender.value))
         configuration.backgroundAlpha = CGFloat(sender.value)
         sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(sender.value + 0.3))

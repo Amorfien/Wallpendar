@@ -116,7 +116,7 @@ class ViewController: UIViewController {
         }
         
         reloadButton.addInteraction(reloadContextMenu)
-        calendarView.addInteraction(calendarContextMenu)
+        calendarView.contentView.addInteraction(calendarContextMenu)
     }
 
     // MARK: - Binding
@@ -285,7 +285,7 @@ extension ViewController: UIContextMenuInteractionDelegate {
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(actionProvider: { [weak self] _ in
             guard let self else { return nil }
-            var childrens: [UIAction] = []
+            var childrens: [UIMenuElement] = []
 
             if interaction.view is SquareButton {
                 ImageMode.allCases.forEach { mode in
@@ -293,13 +293,10 @@ extension ViewController: UIContextMenuInteractionDelegate {
                         self.imageMode = mode
                         self.reloadButton.isButtonTapped?()
                     }
-                    switch mode {
-                    case .blur1, .blur2: action.attributes = .disabled
-                    default: break
-                    }
+                    if mode == .blur { action.attributes = .disabled }
                     childrens.append(action)
                 }
-            } else if interaction.view is MonthCalendarView {
+            } else {
                 let light = UIAction(title: "Светлый",
                                      image: UIImage(systemName: "sun.max"),
                                      state: calendarView.appearance == .light ? .on : .off) { _ in
@@ -335,7 +332,7 @@ extension ViewController: UIContextMenuInteractionDelegate {
                 let secondaryActions = UIMenu(title: "", options: .displayInline, children: [
                     alpha, blur, glass
                 ])
-                return UIMenu(title: "", children: [primaryActions, secondaryActions])
+                childrens = [primaryActions, secondaryActions]
             }
             return UIMenu(title: "", children: childrens)
         })
