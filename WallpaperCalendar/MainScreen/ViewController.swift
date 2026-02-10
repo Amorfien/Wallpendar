@@ -52,7 +52,8 @@ class ViewController: UIViewController {
 
     private let activityIndicator = UIActivityIndicatorView(style: .large)
 
-    private lazy var contextMenu = UIContextMenuInteraction(delegate: self)
+    private lazy var reloadContextMenu = UIContextMenuInteraction(delegate: self)
+    private lazy var calendarContextMenu = UIContextMenuInteraction(delegate: self)
 
     private lazy var photoPicker: PHPickerViewController = {
         var config = PHPickerConfiguration()
@@ -113,13 +114,14 @@ class ViewController: UIViewController {
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
         }
+        
+        reloadButton.addInteraction(reloadContextMenu)
+        calendarView.addInteraction(calendarContextMenu)
     }
 
     // MARK: - Binding
     private func buttonsBinding() {
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
-        longPress.minimumPressDuration = 1
-        reloadButton.addGestureRecognizer(longPress)
+
         reloadButton.isButtonTapped = { [weak self] in
             guard let self else { return }
             activityIndicator.startAnimating()
@@ -209,17 +211,6 @@ class ViewController: UIViewController {
             guard let self else { return }
             isPreview = false
         }
-
-        calendarView.isLongPress = { [weak self] in
-            guard let self else { return }
-            calendarView.addInteraction(contextMenu)
-        }
-    }
-
-    // MARK: - Actions
-    @objc
-    private func longPress() {
-        reloadButton.addInteraction(contextMenu)
     }
 
     // MARK: - Private Methods

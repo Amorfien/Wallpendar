@@ -188,10 +188,6 @@ final class MonthCalendarView: UIView {
         self.layer.borderWidth = 2
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
 
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress))
-        longPress.minimumPressDuration = 1
-        self.addGestureRecognizer(longPress)
-
         self.snp.makeConstraints {
             $0.size.equalTo(configuration.size)
         }
@@ -420,6 +416,7 @@ final class MonthCalendarView: UIView {
         viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = false }
     }
 
+    // MARK: Position Constraints
     @objc
     private func positionPan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
@@ -457,6 +454,7 @@ final class MonthCalendarView: UIView {
         }
     }
 
+    // MARK: Size Constraints
     @objc
     private func sizePan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
@@ -468,30 +466,25 @@ final class MonthCalendarView: UIView {
         case .began:
             isStartDragging?()
         case .changed:
-            if newSize.width > minWidth && newSize.width < R.Device.screenWidth {
+            if newSize.width > minWidth && newSize.width < R.Device.screenWidth - 20 {
                 self.snp.updateConstraints { $0.width.equalTo(newSize.width) }
             }
-            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 2 {
+            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 3 {
                 self.snp.updateConstraints { $0.height.equalTo(newSize.height) }
             }
         case .ended:
-            if newSize.width > minWidth && newSize.width < R.Device.screenWidth {
+            if newSize.width > minWidth && newSize.width < R.Device.screenWidth - 20 {
                 configuration.size.width += translation.x
             } else {
-                configuration.size.width = newSize.width < minWidth ? minWidth : R.Device.screenWidth
+                configuration.size.width = newSize.width < minWidth ? minWidth : R.Device.screenWidth - 20
             }
-            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 2 {
+            if newSize.height > minHeight && newSize.height < R.Device.screenHeight / 3 {
                 configuration.size.height += translation.y
             } else {
-                configuration.size.height = newSize.height < minHeight ? minHeight : R.Device.screenHeight / 2
+                configuration.size.height = newSize.height < minHeight ? minHeight : R.Device.screenHeight / 3
             }
             isEndDragging?()
         default: break
         }
-    }
-
-    @objc
-    private func longPress() {
-        isLongPress?()
     }
 }
