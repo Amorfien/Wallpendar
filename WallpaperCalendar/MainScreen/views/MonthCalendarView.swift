@@ -23,18 +23,16 @@ final class MonthCalendarView: UIView {
         case glass
     }
 
-    var appearance: Appearance = .dark {
+    private(set) var appearance: Appearance = .dark {
         didSet {
-            contentView.backgroundColor = appearance == .light
-            ? material == .alpha ? .white.withAlphaComponent(configuration.backgroundAlpha) : .clear
-            : material == .alpha ? .black.withAlphaComponent(configuration.backgroundAlpha) : .clear
-
-            contentView.layer.borderColor = appearance == .light
-            ? material == .alpha ? UIColor.black.withAlphaComponent(0.5).cgColor : UIColor.clear.cgColor
-            : material == .alpha ? UIColor.white.withAlphaComponent(0.7).cgColor : UIColor.clear.cgColor
-
             switch material {
-            case .alpha: break
+            case .alpha:
+                alphaView.backgroundColor = appearance == .light
+                ? .white.withAlphaComponent(configuration.backgroundAlpha)
+                : .black.withAlphaComponent(configuration.backgroundAlpha)
+                alphaView.layer.borderColor = appearance == .light
+                ? UIColor.black.withAlphaComponent(0.5).cgColor
+                : UIColor.white.withAlphaComponent(0.7).cgColor
             case .blur: visualEffectView.effect = appearance == .light ? lightBlur : darkBlur
             case .glass: visualEffectView.effect = clearGlass
             }
@@ -49,10 +47,11 @@ final class MonthCalendarView: UIView {
         }
     }
 
-    var material: Material = .alpha {
+    private(set) var material: Material = .alpha {
         didSet {
             guard material != oldValue else { return }
             visualEffectView.isHidden = material == .alpha
+            alphaView.isHidden = material != .alpha
             transparencySlider.isHidden = material != .alpha
             appearance = .dark
         }
@@ -85,8 +84,6 @@ final class MonthCalendarView: UIView {
     let contentView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
-        view.layer.borderWidth = 2
-        view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         view.layer.masksToBounds = true
         view.clipsToBounds = true
         return view
@@ -97,11 +94,20 @@ final class MonthCalendarView: UIView {
     private let clearGlass = UIGlassEffect(style: .clear)
 
     private lazy var visualEffectView: UIVisualEffectView = {
-        let blurView = UIVisualEffectView(effect: darkBlur)
-        blurView.isUserInteractionEnabled = false
-        blurView.clipsToBounds = true
-        blurView.isHidden = true
-        return blurView
+        let view = UIVisualEffectView(effect: darkBlur)
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        view.isHidden = true
+        return view
+    }()
+    private var alphaView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 16
+        view.layer.borderWidth = 2
+        view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
+        view.layer.masksToBounds = true
+        view.clipsToBounds = true
+        return view
     }()
 
     private let mainStackView: UIStackView = {
@@ -206,6 +212,14 @@ final class MonthCalendarView: UIView {
         reloadCalendar()
     }
 
+    func changeAppearance(to appearance: Appearance) {
+        self.appearance = appearance
+    }
+
+    func changeMaterial(to material: Material) {
+        self.material = material
+    }
+
     // MARK: - SetupUI
     private func setupView() {
         self.snp.makeConstraints {
@@ -216,13 +230,17 @@ final class MonthCalendarView: UIView {
         contentView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        contentView.backgroundColor = configuration.backgroundColor
-            .withAlphaComponent(configuration.backgroundAlpha)
 
-        contentView.addSubview(visualEffectView)
+        contentView.addSubviews(alphaView, visualEffectView)
+        alphaView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         visualEffectView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
+        alphaView.backgroundColor = configuration.backgroundColor
+            .withAlphaComponent(configuration.backgroundAlpha)
+
         contentView.addSubview(mainStackView)
         addSubviews(leftButton, rightButton, transparencySlider, sizeView)
         mainStackView.snp.makeConstraints {
@@ -434,7 +452,7 @@ final class MonthCalendarView: UIView {
 
     @objc
     private func transparencyChanged(_ sender: UISlider) {
-        contentView.backgroundColor = configuration.backgroundColor
+        alphaView.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(CGFloat(sender.value))
         configuration.backgroundAlpha = CGFloat(sender.value)
         sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(min(sender.value, 0.7) + 0.3))

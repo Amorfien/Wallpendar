@@ -299,28 +299,30 @@ extension ViewController: UIContextMenuInteractionDelegate {
             } else {
                 let light = UIAction(title: "Светлый",
                                      image: UIImage(systemName: "sun.max"),
+                                     //attributes: [calendarView.material == .glass ? .hidden : []],
                                      state: calendarView.appearance == .light ? .on : .off) { _ in
-                    self.calendarView.appearance = .light
+                    self.calendarView.changeAppearance(to: .light)
                 }
                 let dark = UIAction(title: "Тёмный",
                                     image: UIImage(systemName: "moon"),
+                                    //attributes: [calendarView.material == .glass ? .hidden : []],
                                     state: calendarView.appearance == .dark ? .on : .off) { _ in
-                    self.calendarView.appearance = .dark
+                    self.calendarView.changeAppearance(to: .dark)
                 }
                 let alpha = UIAction(title: "Затемнение",
                                      image: UIImage(systemName: "aqi.medium"),
                                      state: calendarView.material == .alpha ? .on : .off) { _ in
-                    self.calendarView.material = .alpha
+                    self.calendarView.changeMaterial(to: .alpha)
                 }
                 let blur = UIAction(title: "Блюр",
                                     image: UIImage(systemName: "app.background.dotted"),
                                     state: calendarView.material == .blur ? .on : .off) { _ in
-                    self.calendarView.material = .blur
+                    self.calendarView.changeMaterial(to: .blur)
                 }
                 let glass = UIAction(title: "Стекло",
                                      image: UIImage(systemName: "sparkles.2"),
                                      state: calendarView.material == .glass ? .on : .off) { _ in
-                    self.calendarView.material = .glass
+                    self.calendarView.changeMaterial(to: .glass)
                 }
 
                 let primaryActions = UIMenu(title: "", options: .displayInline, children: [
