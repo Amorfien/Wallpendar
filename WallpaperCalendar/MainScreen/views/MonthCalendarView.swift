@@ -413,7 +413,7 @@ final class MonthCalendarView: UIView {
         contentView.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(CGFloat(sender.value))
         configuration.backgroundAlpha = CGFloat(sender.value)
-        sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(sender.value + 0.3))
+        sender.minimumTrackTintColor = .tintColor.withAlphaComponent(CGFloat(min(sender.value, 0.7) + 0.3))
     }
     @objc
     private func transparencyStart() {
