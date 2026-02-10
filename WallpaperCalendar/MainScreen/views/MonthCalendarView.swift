@@ -11,8 +11,7 @@ import SnapKit
 
 final class MonthCalendarView: UIView {
     
-    // MARK: - Приватные свойства
-
+    // MARK: - Nested Properties
     enum Appearance {
         case light
         case dark
@@ -34,7 +33,11 @@ final class MonthCalendarView: UIView {
             ? material == .alpha ? UIColor.black.withAlphaComponent(0.5).cgColor : UIColor.clear.cgColor
             : material == .alpha ? UIColor.white.withAlphaComponent(0.7).cgColor : UIColor.clear.cgColor
 
-            blurView.effect = appearance == .light ? lightBlur : darkBlur
+            switch material {
+            case .alpha: break
+            case .blur: visualEffectView.effect = appearance == .light ? lightBlur : darkBlur
+            case .glass: visualEffectView.effect = clearGlass
+            }
 
             self.configuration.dayTextColor = appearance == .light ? .black : .white
             self.configuration.monthHeaderColor = appearance == .light ? .black : .white
@@ -49,7 +52,7 @@ final class MonthCalendarView: UIView {
     var material: Material = .alpha {
         didSet {
             guard material != oldValue else { return }
-            blurView.isHidden = material != .blur
+            visualEffectView.isHidden = material == .alpha
             transparencySlider.isHidden = material != .alpha
             appearance = .dark
         }
@@ -91,13 +94,11 @@ final class MonthCalendarView: UIView {
 
     private let darkBlur = UIBlurEffect(style: .systemThinMaterialDark)
     private let lightBlur = UIBlurEffect(style: .systemThinMaterialLight)
+    private let clearGlass = UIGlassEffect(style: .clear)
 
-    private lazy var blurView: UIVisualEffectView = {
+    private lazy var visualEffectView: UIVisualEffectView = {
         let blurView = UIVisualEffectView(effect: darkBlur)
         blurView.isUserInteractionEnabled = false
-        blurView.layer.cornerRadius = 16
-        blurView.layer.borderWidth = 0.33
-        blurView.layer.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
         blurView.clipsToBounds = true
         blurView.isHidden = true
         return blurView
@@ -218,8 +219,8 @@ final class MonthCalendarView: UIView {
         contentView.backgroundColor = configuration.backgroundColor
             .withAlphaComponent(configuration.backgroundAlpha)
 
-        contentView.addSubview(blurView)
-        blurView.snp.makeConstraints {
+        contentView.addSubview(visualEffectView)
+        visualEffectView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         contentView.addSubview(mainStackView)
