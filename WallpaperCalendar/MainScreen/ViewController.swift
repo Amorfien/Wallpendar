@@ -21,6 +21,8 @@ class ViewController: UIViewController {
         }
     }
 
+    private var isDoublePreview: Bool = false
+
     private lazy var viewsToHide: [UIView] = [
         reloadButton,
         galleryButton,
@@ -150,6 +152,7 @@ class ViewController: UIViewController {
         }
 
         previewButton.isButtonTapped = { [weak self] in
+            self?.isDoublePreview = false
             self?.isPreview.toggle()
         }
 
@@ -205,11 +208,14 @@ class ViewController: UIViewController {
         }
         calendarView.isStartDragging = { [weak self] in
             guard let self else { return }
+            if isPreview { isDoublePreview = true }
             isPreview = true
         }
         calendarView.isEndDragging = { [weak self] in
             guard let self else { return }
-            isPreview = false
+            if !isDoublePreview {
+                isPreview = false
+            }
         }
         calendarView.isNeedToPresentColorPicker = { [weak self] picker in
             self?.present(picker, animated: true)
