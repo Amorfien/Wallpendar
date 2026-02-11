@@ -522,11 +522,13 @@ final class MonthCalendarView: UIView {
     }
     @objc
     private func transparencyStart() {
-        viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = true }
+        viewsToHide
+            .filter { !($0 is UISlider) }
+            .forEach { $0.isHidden = true }
     }
     @objc
     private func transparencyEnd() {
-        viewsToHide.compactMap { $0 as? UIButton }.forEach { $0.isHidden = false }
+        viewsToHide.forEach { $0.isHidden = false }
     }
 
     // MARK: Position Constraints
