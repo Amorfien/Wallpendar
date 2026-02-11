@@ -53,6 +53,7 @@ final class MonthCalendarView: UIView {
             alphaView.isHidden = material != .alpha
             transparencySlider.isHidden = material != .alpha
             colorStackView.isHidden = material != .alpha
+            pickerButton.isHidden = material != .alpha
 
             let oldAppearance = appearance
             appearance = oldAppearance
@@ -63,13 +64,15 @@ final class MonthCalendarView: UIView {
     var isChangeYPosition: ((CGFloat) -> Void)?
     var isStartDragging: (() -> Void)?
     var isEndDragging: (() -> Void)?
+    var isNeedToPresentColorPicker: ((UIColorPickerViewController) -> Void)?
 
     lazy var viewsToHide: [UIView] = [
         leftButton,
         rightButton,
         transparencySlider,
         sizeView,
-        colorStackView
+        colorStackView,
+        pickerButton
     ]
 
     private var configuration: CalendarConfiguration
@@ -171,7 +174,6 @@ final class MonthCalendarView: UIView {
         for (index, color) in colors.enumerated() {
             let button = UIButton()
             button.backgroundColor = color
-            button.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
             button.tag = index
             button.layer.cornerRadius = 3
             button.layer.borderWidth = 0.33
@@ -183,6 +185,20 @@ final class MonthCalendarView: UIView {
         stack.axis = .horizontal
         stack.distribution = .fillEqually
         return stack
+    }()
+
+    private lazy var pickerButton: UIButton = {
+        let button = UIButton()
+        button.setImage(.rgb, for: .normal)
+        button.addTarget(self, action: #selector(pickerButtonTap), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var colorPicker: UIColorPickerViewController = {
+        let picker = UIColorPickerViewController()
+        picker.delegate = self
+        picker.supportsAlpha = false
+        return picker
     }()
 
     private var dayLabels: [UILabel] = []
@@ -265,7 +281,7 @@ final class MonthCalendarView: UIView {
             .withAlphaComponent(configuration.backgroundAlpha)
 
         contentView.addSubview(mainStackView)
-        addSubviews(leftButton, rightButton, transparencySlider, sizeView, colorStackView)
+        addSubviews(leftButton, rightButton, transparencySlider, sizeView, colorStackView, pickerButton)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -287,9 +303,15 @@ final class MonthCalendarView: UIView {
             $0.size.equalTo(44)
         }
         colorStackView.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(6)
+            $0.leading.equalToSuperview().offset(6)
+            $0.trailing.equalToSuperview().inset(40)
             $0.bottom.equalTo(self.snp.top).offset(-4)
             $0.height.equalTo(32)
+        }
+        pickerButton.snp.makeConstraints {
+            $0.verticalEdges.equalTo(colorStackView)
+            $0.leading.equalTo(colorStackView.snp.trailing).offset(4)
+            $0.size.equalTo(32)
         }
 
         setupCalendarStructure()
@@ -478,6 +500,11 @@ final class MonthCalendarView: UIView {
     }
 
     @objc
+    private func pickerButtonTap() {
+        isNeedToPresentColorPicker?(colorPicker)
+    }
+
+    @objc
     private func stepperValueChanged(_ sender: UIButton) {
         let newValue = currentMonthOffset + sender.tag
         if newValue > -3 && newValue < 13 {
@@ -572,5 +599,15 @@ final class MonthCalendarView: UIView {
             isEndDragging?()
         default: break
         }
+    }
+}
+
+// MARK: - Color Picker
+extension MonthCalendarView: UIColorPickerViewControllerDelegate {
+    func colorPickerViewController(_ viewController: UIColorPickerViewController,
+                                   didSelect color: UIColor,
+                                   continuously: Bool) {
+        configuration.backgroundColor = color
+        alphaView.backgroundColor = color.withAlphaComponent(configuration.backgroundAlpha)
     }
 }

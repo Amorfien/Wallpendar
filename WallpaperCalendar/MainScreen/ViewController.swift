@@ -211,6 +211,9 @@ class ViewController: UIViewController {
             guard let self else { return }
             isPreview = false
         }
+        calendarView.isNeedToPresentColorPicker = { [weak self] picker in
+            self?.present(picker, animated: true)
+        }
     }
 
     // MARK: - Private Methods
