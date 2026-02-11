@@ -538,31 +538,42 @@ final class MonthCalendarView: UIView {
         let newOffset = CGPoint(x: configuration.positionOffset.x + translation.x,
                                 y: configuration.positionOffset.y + translation.y)
 
+        let maxX = R.Device.screenWidth - configuration.size.width
+        let maxY = R.Device.screenHeight - configuration.size.height
+
         switch gesture.state {
         case .began:
             isStartDragging?()
         case .changed:
             if newOffset.x >= 0
-                && newOffset.x <= R.Device.screenWidth - configuration.size.width {
+                && newOffset.x <= maxX {
                 isChangeXPosition?(newOffset.x)
+            } else if newOffset.x < 0 {
+                isChangeXPosition?(0)
+            } else {
+                isChangeXPosition?(maxX)
             }
             if newOffset.y >= 0
-                && newOffset.y <= R.Device.screenHeight - configuration.size.height {
+                && newOffset.y <= maxY {
                 isChangeYPosition?(newOffset.y)
+            } else if newOffset.y < 0 {
+                isChangeYPosition?(0)
+            } else {
+                isChangeYPosition?(maxY)
             }
         case .ended:
             if newOffset.x >= 0
-                && newOffset.x <= R.Device.screenWidth - configuration.size.width {
+                && newOffset.x <= maxX {
                 configuration.positionOffset.x += translation.x
             } else {
-                configuration.positionOffset.x = newOffset.x < 0 ? 0 : R.Device.screenWidth - configuration.size.width
+                configuration.positionOffset.x = newOffset.x < 0 ? 0 : maxX
             }
             if newOffset.y >= 0
-                && newOffset.y <= R.Device.screenHeight - configuration.size.height
+                && newOffset.y <= maxY
             {
                 configuration.positionOffset.y += translation.y
             } else {
-                configuration.positionOffset.y = newOffset.y < 0 ? 0 : R.Device.screenHeight - configuration.size.height
+                configuration.positionOffset.y = newOffset.y < 0 ? 0 : maxY
             }
             isEndDragging?()
         default: break
