@@ -537,50 +537,43 @@ final class MonthCalendarView: UIView {
     @objc
     private func positionPan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: superview)
-        let newOffset = CGPoint(x: configuration.positionOffset.x + translation.x,
-                                y: configuration.positionOffset.y + translation.y)
-
-        let maxX = R.Device.screenWidth - configuration.size.width
-        let maxY = R.Device.screenHeight - configuration.size.height
+        let dumpRate = 7.0
         let centerX = (R.Device.screenWidth / 2) - (configuration.size.width / 2)
         let centerY = (R.Device.screenHeight / 2) - (configuration.size.height / 2)
+        let maxX = R.Device.screenWidth - configuration.size.width
+        let maxY = R.Device.screenHeight - configuration.size.height
+        var newX = configuration.positionOffset.x + translation.x
+        var newY = configuration.positionOffset.y + translation.y
+
+        if newX < 0 {
+            newX = newX / dumpRate
+        } else if newX > maxX {
+            newX = maxX + (newX - maxX) / dumpRate
+        }
+        if newY < 0 {
+            newY = newY / dumpRate
+        } else if newY > maxY {
+            newY = maxY + (newY - maxY) / dumpRate
+        }
 
         switch gesture.state {
         case .began:
             isStartDragging?()
         case .changed:
-            if newOffset.x >= 0
-                && newOffset.x <= maxX {
-                isChangeXPosition?(newOffset.x)
-                isNeedToShowVertical?(newOffset.x == centerX)
-            } else if newOffset.x < 0 {
-                isChangeXPosition?(0)
-            } else {
-                isChangeXPosition?(maxX)
-            }
-            if newOffset.y >= 0
-                && newOffset.y <= maxY {
-                isChangeYPosition?(newOffset.y)
-                isNeedToShowHorizontal?(newOffset.y == centerY)
-            } else if newOffset.y < 0 {
-                isChangeYPosition?(0)
-            } else {
-                isChangeYPosition?(maxY)
-            }
+            isChangeXPosition?(newX)
+            isChangeYPosition?(newY)
+            isNeedToShowVertical?(newX == centerX)
+            isNeedToShowHorizontal?(newY == centerY)
         case .ended:
-            if newOffset.x >= 0
-                && newOffset.x <= maxX {
-                configuration.positionOffset.x += translation.x
-            } else {
-                configuration.positionOffset.x = newOffset.x < 0 ? 0 : maxX
+            let finalX = min(max(configuration.positionOffset.x + translation.x, 0), maxX)
+            let finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.7) {
+                self.isChangeXPosition?(finalX)
+                self.isChangeYPosition?(finalY)
             }
-            if newOffset.y >= 0
-                && newOffset.y <= maxY
-            {
-                configuration.positionOffset.y += translation.y
-            } else {
-                configuration.positionOffset.y = newOffset.y < 0 ? 0 : maxY
-            }
+            configuration.positionOffset.x = finalX
+            configuration.positionOffset.y = finalY
+            gesture.setTranslation(.zero, in: superview)
             isEndDragging?()
         default: break
         }
