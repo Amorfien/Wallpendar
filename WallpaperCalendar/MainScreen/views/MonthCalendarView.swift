@@ -135,14 +135,14 @@ final class MonthCalendarView: UIView {
 
     private lazy var leftButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeLeft.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeLeft, for: .normal)
         button.tag = -1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
     }()
     private lazy var rightButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(.arrowshapeRight.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
+        button.setImage(.arrowshapeRight, for: .normal)
         button.tag = 1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
@@ -155,16 +155,13 @@ final class MonthCalendarView: UIView {
         slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
         slider.addTarget(self, action: #selector(transparencyStart), for: .touchDown)
         slider.addTarget(self, action: #selector(transparencyEnd), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
-        slider.tintColor = .tintColor.withAlphaComponent(0.8)
+        slider.setThumbImage(UIImage.transparency, for: .normal)
         slider.isHidden = true
         return slider
     }()
     private lazy var sizeView: UIButton = {
         let view = UIButton()
-        view.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right")?
-            .withTintColor(.tintColor.withAlphaComponent(0.8),
-                           renderingMode: .alwaysOriginal), for: .normal)
+        view.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right"), for: .normal)
         view.addGestureRecognizer(
             UIPanGestureRecognizer(
                 target: self,
@@ -216,7 +213,7 @@ final class MonthCalendarView: UIView {
         String(localized: "weekday.th"),
         String(localized: "weekday.fr"),
         String(localized: "weekday.sa"),
-        String(localized: "weekday.su"),
+        String(localized: "weekday.su")
     ]
     private let colors: [UIColor] = [.lightCalendar, .darkCalendar, .grayCalendar, .greenCalendar, .blueCalendar, .pinkCalendar, .yellowCalendar]
 
@@ -241,7 +238,7 @@ final class MonthCalendarView: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let largerBounds = CGRect(x: 0, y: -36, width: bounds.width + 16, height: bounds.height + 16 + 36)
+        let largerBounds = CGRect(x: 0, y: -36, width: bounds.width + 14, height: bounds.height + 14 + 36)
         return largerBounds.contains(point)
     }
 
@@ -306,8 +303,8 @@ final class MonthCalendarView: UIView {
             $0.width.equalToSuperview().inset(28)
         }
         sizeView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(15)
-            $0.size.equalTo(40)
+            $0.trailing.bottom.equalToSuperview().offset(12)
+            $0.size.equalTo(34)
         }
         leftButton.snp.makeConstraints {
             $0.top.leading.equalToSuperview().offset(4)

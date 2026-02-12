@@ -68,14 +68,14 @@ class ViewController: UIViewController {
 
     private let verticalCenterView: UIView = {
         let view = UIView()
-        view.backgroundColor = .yellow.withAlphaComponent(0.8)
+        view.backgroundColor = .yellow.withAlphaComponent(0.7)
         view.isHidden = true
         return view
     }()
 
     private let horizontalCenterView: UIView = {
         let view = UIView()
-        view.backgroundColor = .yellow.withAlphaComponent(0.8)
+        view.backgroundColor = .yellow.withAlphaComponent(0.7)
         view.isHidden = true
         return view
     }()
