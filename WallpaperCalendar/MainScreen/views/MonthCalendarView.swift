@@ -128,6 +128,8 @@ final class MonthCalendarView: UIView {
     private let monthHeaderLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.6
         return label
     }()
 

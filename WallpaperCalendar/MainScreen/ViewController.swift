@@ -334,13 +334,13 @@ extension ViewController: UIContextMenuInteractionDelegate {
                     childrens.append(action)
                 }
             } else {
-                let light = UIAction(title: String(localized: "calendar.appearance.light"),
-                                     image: UIImage(systemName: "sun.max"),
+                let light = UIAction(title: String(localized: "calendar.appearance.dark"),
+                                     image: UIImage(systemName: "character.square"),
                                      state: calendarView.appearance == .light ? .on : .off) { _ in
                     self.calendarView.changeAppearance(to: .light)
                 }
-                let dark = UIAction(title: String(localized: "calendar.appearance.dark"),
-                                    image: UIImage(systemName: "moon"),
+                let dark = UIAction(title: String(localized: "calendar.appearance.light"),
+                                    image: UIImage(systemName: "character.square.fill"),
                                     state: calendarView.appearance == .dark ? .on : .off) { _ in
                     self.calendarView.changeAppearance(to: .dark)
                 }
@@ -360,10 +360,10 @@ extension ViewController: UIContextMenuInteractionDelegate {
                     self.calendarView.changeMaterial(to: .glass)
                 }
 
-                let primaryActions = UIMenu(title: "", options: .displayInline, children: [
+                let primaryActions = UIMenu(title: String(localized: "calendar.appearance.title"), options: .displayInline, children: [
                     light, dark
                 ])
-                let secondaryActions = UIMenu(title: "", options: .displayInline, children: [
+                let secondaryActions = UIMenu(title: String(localized: "calendar.mode.title"), options: .displayInline, children: [
                     alpha, blur, glass
                 ])
                 childrens = [primaryActions, secondaryActions]
