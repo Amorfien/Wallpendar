@@ -21,8 +21,8 @@ struct CalendarConfiguration {
 
     init(size: CGSize,
          positionOffset: CGPoint,
-         backgroundColor: UIColor = .darkCalendar,
-         backgroundAlpha: CGFloat = 0.5,
+         backgroundColor: UIColor = .blueCalendar,
+         backgroundAlpha: CGFloat = 0.75,
          dayTextColor: UIColor = .white,
          weekendTextColor: UIColor = .weekend,
          weekdayHeaderColor: UIColor = .lightGray,

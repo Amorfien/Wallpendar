@@ -18,7 +18,7 @@ final class MonthCalendarView: UIView {
     }
 
     enum Material {
-        case alpha
+        case shade
         case blur
         case glass
     }
@@ -26,7 +26,7 @@ final class MonthCalendarView: UIView {
     private(set) var appearance: Appearance = .dark {
         didSet {
             switch material {
-            case .alpha:
+            case .shade:
                 alphaView.backgroundColor = configuration.backgroundColor
                     .withAlphaComponent(configuration.backgroundAlpha)
                 alphaView.layer.borderColor = appearance == .light
@@ -46,14 +46,14 @@ final class MonthCalendarView: UIView {
         }
     }
 
-    private(set) var material: Material = .alpha {
+    private(set) var material: Material = .blur {
         didSet {
             guard material != oldValue else { return }
-            visualEffectView.isHidden = material == .alpha
-            alphaView.isHidden = material != .alpha
-            transparencySlider.isHidden = material != .alpha
-            colorStackView.isHidden = material != .alpha
-            pickerButton.isHidden = material != .alpha
+            visualEffectView.isHidden = material == .shade
+            alphaView.isHidden = material != .shade
+            transparencySlider.isHidden = material != .shade
+            colorStackView.isHidden = material != .shade
+            pickerButton.isHidden = material != .shade
 
             let oldAppearance = appearance
             appearance = oldAppearance
@@ -105,7 +105,6 @@ final class MonthCalendarView: UIView {
         let view = UIVisualEffectView(effect: darkBlur)
         view.layer.cornerRadius = 16
         view.clipsToBounds = true
-        view.isHidden = true
         return view
     }()
     private var alphaView: UIView = {
@@ -115,6 +114,7 @@ final class MonthCalendarView: UIView {
         view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         view.layer.masksToBounds = true
         view.clipsToBounds = true
+        view.isHidden = true
         return view
     }()
 
@@ -149,7 +149,7 @@ final class MonthCalendarView: UIView {
     }()
     private lazy var transparencySlider: UISlider = {
         let slider = UISlider()
-        slider.value = 0.5
+        slider.value = Float(configuration.backgroundAlpha)
         slider.minimumValue = 0
         slider.maximumValue = 1
         slider.addTarget(self, action: #selector(transparencyChanged(_:)), for: .valueChanged)
@@ -157,6 +157,7 @@ final class MonthCalendarView: UIView {
         slider.addTarget(self, action: #selector(transparencyEnd), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         slider.setThumbImage(UIImage.transparency.withTintColor(.tintColor.withAlphaComponent(0.8), renderingMode: .alwaysOriginal), for: .normal)
         slider.tintColor = .tintColor.withAlphaComponent(0.8)
+        slider.isHidden = true
         return slider
     }()
     private lazy var sizeView: UIButton = {
@@ -188,6 +189,7 @@ final class MonthCalendarView: UIView {
         stack.spacing = 4
         stack.axis = .horizontal
         stack.distribution = .fillEqually
+        stack.isHidden = true
         return stack
     }()
 
@@ -195,6 +197,7 @@ final class MonthCalendarView: UIView {
         let button = UIButton()
         button.setImage(.rgb, for: .normal)
         button.addTarget(self, action: #selector(pickerButtonTap), for: .touchUpInside)
+        button.isHidden = true
         return button
     }()
 

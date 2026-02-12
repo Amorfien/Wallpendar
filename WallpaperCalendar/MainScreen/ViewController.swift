@@ -346,8 +346,8 @@ extension ViewController: UIContextMenuInteractionDelegate {
                 }
                 let alpha = UIAction(title: String(localized: "calendar.mode.shading"),
                                      image: UIImage(systemName: "aqi.medium"),
-                                     state: calendarView.material == .alpha ? .on : .off) { _ in
-                    self.calendarView.changeMaterial(to: .alpha)
+                                     state: calendarView.material == .shade ? .on : .off) { _ in
+                    self.calendarView.changeMaterial(to: .shade)
                 }
                 let blur = UIAction(title: String(localized: "calendar.mode.blur"),
                                     image: UIImage(systemName: "app.background.dotted"),
