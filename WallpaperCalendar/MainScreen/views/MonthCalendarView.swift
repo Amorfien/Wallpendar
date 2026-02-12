@@ -540,6 +540,7 @@ final class MonthCalendarView: UIView {
         let dumpRate = 7.0
         let centerX = (R.Device.screenWidth / 2) - (configuration.size.width / 2)
         let centerY = (R.Device.screenHeight / 2) - (configuration.size.height / 2)
+        let centerThreshold = 6.0
         let maxX = R.Device.screenWidth - configuration.size.width
         let maxY = R.Device.screenHeight - configuration.size.height
         var newX = configuration.positionOffset.x + translation.x
@@ -549,11 +550,15 @@ final class MonthCalendarView: UIView {
             newX = newX / dumpRate
         } else if newX > maxX {
             newX = maxX + (newX - maxX) / dumpRate
+        } else if abs(newX - centerX) < centerThreshold {
+            newX = centerX
         }
         if newY < 0 {
             newY = newY / dumpRate
         } else if newY > maxY {
             newY = maxY + (newY - maxY) / dumpRate
+        } else if abs(newY - centerY) < centerThreshold {
+            newY = centerY
         }
 
         switch gesture.state {
@@ -565,8 +570,14 @@ final class MonthCalendarView: UIView {
             isNeedToShowVertical?(newX == centerX)
             isNeedToShowHorizontal?(newY == centerY)
         case .ended:
-            let finalX = min(max(configuration.positionOffset.x + translation.x, 0), maxX)
-            let finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
+            var finalX = min(max(configuration.positionOffset.x + translation.x, 0), maxX)
+            var finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
+            if abs(finalX - centerX) < centerThreshold {
+                finalX = centerX
+            }
+            if abs(finalY - centerY) < centerThreshold {
+                finalY = centerY
+            }
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.7) {
                 self.isChangeXPosition?(finalX)
                 self.isChangeYPosition?(finalY)
