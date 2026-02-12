@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 final class MonthCalendarView: UIView {
-    
+
     // MARK: - Nested Properties
     enum Appearance {
         case light
@@ -124,7 +124,7 @@ final class MonthCalendarView: UIView {
         stack.distribution = .equalSpacing
         return stack
     }()
-    
+
     private let monthHeaderLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
@@ -204,7 +204,15 @@ final class MonthCalendarView: UIView {
     }()
 
     private var dayLabels: [UILabel] = []
-    private let weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+    private let weekdays = [
+        String(localized: "weekday.mo"),
+        String(localized: "weekday.tu"),
+        String(localized: "weekday.we"),
+        String(localized: "weekday.th"),
+        String(localized: "weekday.fr"),
+        String(localized: "weekday.sa"),
+        String(localized: "weekday.su"),
+    ]
     private let colors: [UIColor] = [.lightCalendar, .darkCalendar, .grayCalendar, .greenCalendar, .blueCalendar, .pinkCalendar, .yellowCalendar]
 
     // MARK: - Initialization

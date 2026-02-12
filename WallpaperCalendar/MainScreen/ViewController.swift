@@ -205,13 +205,13 @@ class ViewController: UIViewController {
                         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
                     } else {
                         showAlert(
-                            title: "Нет доступа к фото",
-                            message: "Пожалуйста, разрешите доступ к фото библиотеке в настройках приложения",
-                            primaryAction: UIAlertAction(title: "Настройки", style: .default) { _ in
+                            title: String(localized: "permission.noAccess.title"),
+                            message: String(localized: "permission.noAccess.message"),
+                            primaryAction: UIAlertAction(title: String(localized: "main.settings"), style: .default) { _ in
                                 guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
                                 UIApplication.shared.open(settingsUrl)
                             },
-                            secondaryAction: UIAlertAction(title: "Отмена", style: .cancel)
+                            secondaryAction: UIAlertAction(title: String(localized: "main.cancel"), style: .cancel)
                         )
                     }
                 }
@@ -294,9 +294,9 @@ class ViewController: UIViewController {
             self?.activityIndicator.stopAnimating()
             self?.viewsToHide.compactMap { $0 as? UIControl }.forEach { $0.isEnabled = true }
             if let error = error {
-                self?.showAlert(title: "Ошибка", message: "Не удалось сохранить изображение: \(error.localizedDescription)")
+                self?.showAlert(title: String(localized: "main.error"), message: String(format: String(localized: "save.error.message"), error.localizedDescription))
             } else {
-                self?.showAlert(title: "Успешно", message: "Обои сохранены в галерею")
+                self?.showAlert(title: String(localized: "main.success"), message: String(localized: "save.success.message"))
             }
         }
     }
@@ -334,29 +334,27 @@ extension ViewController: UIContextMenuInteractionDelegate {
                     childrens.append(action)
                 }
             } else {
-                let light = UIAction(title: "Светлый",
+                let light = UIAction(title: String(localized: "calendar.appearance.light"),
                                      image: UIImage(systemName: "sun.max"),
-                                     //attributes: [calendarView.material == .glass ? .hidden : []],
                                      state: calendarView.appearance == .light ? .on : .off) { _ in
                     self.calendarView.changeAppearance(to: .light)
                 }
-                let dark = UIAction(title: "Тёмный",
+                let dark = UIAction(title: String(localized: "calendar.appearance.dark"),
                                     image: UIImage(systemName: "moon"),
-                                    //attributes: [calendarView.material == .glass ? .hidden : []],
                                     state: calendarView.appearance == .dark ? .on : .off) { _ in
                     self.calendarView.changeAppearance(to: .dark)
                 }
-                let alpha = UIAction(title: "Затемнение",
+                let alpha = UIAction(title: String(localized: "calendar.mode.shading"),
                                      image: UIImage(systemName: "aqi.medium"),
                                      state: calendarView.material == .alpha ? .on : .off) { _ in
                     self.calendarView.changeMaterial(to: .alpha)
                 }
-                let blur = UIAction(title: "Блюр",
+                let blur = UIAction(title: String(localized: "calendar.mode.blur"),
                                     image: UIImage(systemName: "app.background.dotted"),
                                     state: calendarView.material == .blur ? .on : .off) { _ in
                     self.calendarView.changeMaterial(to: .blur)
                 }
-                let glass = UIAction(title: "Стекло",
+                let glass = UIAction(title: String(localized: "calendar.mode.glass"),
                                      image: UIImage(systemName: "sparkles.2"),
                                      state: calendarView.material == .glass ? .on : .off) { _ in
                     self.calendarView.changeMaterial(to: .glass)

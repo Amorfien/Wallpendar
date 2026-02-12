@@ -48,11 +48,11 @@ enum ImageMode: String, CaseIterable {
     var title: String {
         switch self {
         case .standart:
-            return "Стандарт"
+            return String(localized: "apiMode.standart")
         case .grayscale:
-            return "Чёрно-белый"
+            return String(localized: "apiMode.grayscale")
         case .blur:
-            return "Блюр"
+            return String(localized: "apiMode.blur")
         }
     }
 }
