@@ -367,12 +367,15 @@ final class MonthCalendarView: UIView {
         stack.axis = .horizontal
         stack.distribution = .fillEqually
         stack.spacing = 4
-        
+        stack.alignment = .bottom
+
         for weekday in weekdays {
             let label = UILabel()
             label.text = weekday
             label.textAlignment = .center
             label.font = .systemFont(ofSize: configuration.dayFontSize - 1, weight: .semibold)
+            label.minimumScaleFactor = 0.7
+            label.adjustsFontSizeToFitWidth = true
             label.textColor = configuration.weekdayHeaderColor
             stack.addArrangedSubview(label)
         }
@@ -402,7 +405,7 @@ final class MonthCalendarView: UIView {
     private func updateCalendar() {
         // Обновляем заголовок
         let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "ru_RU")
+        dateFormatter.locale = Locale.current
         dateFormatter.dateFormat = "LLLL yyyy"
         
         if let date = Calendar.current.date(from: dateComponents) {
