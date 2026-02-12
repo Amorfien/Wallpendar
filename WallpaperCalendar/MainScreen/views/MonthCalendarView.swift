@@ -65,6 +65,8 @@ final class MonthCalendarView: UIView {
     var isStartDragging: (() -> Void)?
     var isEndDragging: (() -> Void)?
     var isNeedToPresentColorPicker: ((UIColorPickerViewController) -> Void)?
+    var isNeedToShowVertical: ((Bool) -> Void)?
+    var isNeedToShowHorizontal: ((Bool) -> Void)?
 
     lazy var viewsToHide: [UIView] = [
         leftButton,
@@ -540,6 +542,8 @@ final class MonthCalendarView: UIView {
 
         let maxX = R.Device.screenWidth - configuration.size.width
         let maxY = R.Device.screenHeight - configuration.size.height
+        let centerX = (R.Device.screenWidth / 2) - (configuration.size.width / 2)
+        let centerY = (R.Device.screenHeight / 2) - (configuration.size.height / 2)
 
         switch gesture.state {
         case .began:
@@ -548,6 +552,7 @@ final class MonthCalendarView: UIView {
             if newOffset.x >= 0
                 && newOffset.x <= maxX {
                 isChangeXPosition?(newOffset.x)
+                isNeedToShowVertical?(newOffset.x == centerX)
             } else if newOffset.x < 0 {
                 isChangeXPosition?(0)
             } else {
@@ -556,6 +561,7 @@ final class MonthCalendarView: UIView {
             if newOffset.y >= 0
                 && newOffset.y <= maxY {
                 isChangeYPosition?(newOffset.y)
+                isNeedToShowHorizontal?(newOffset.y == centerY)
             } else if newOffset.y < 0 {
                 isChangeYPosition?(0)
             } else {

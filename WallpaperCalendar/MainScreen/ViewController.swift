@@ -66,6 +66,20 @@ class ViewController: UIViewController {
         return picker
     }()
 
+    private let verticalCenterView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .yellow
+        view.isHidden = true
+        return view
+    }()
+
+    private let horizontalCenterView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .yellow
+        view.isHidden = true
+        return view
+    }()
+
     override var prefersStatusBarHidden: Bool {
         return isPreview
     }
@@ -85,6 +99,8 @@ class ViewController: UIViewController {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
         view.addSubviews(backgroundImageView,
+                         verticalCenterView,
+                         horizontalCenterView,
                          calendarView,
                          reloadButton,
                          galleryButton,
@@ -116,7 +132,15 @@ class ViewController: UIViewController {
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
         }
-        
+        verticalCenterView.snp.makeConstraints {
+            $0.centerX.verticalEdges.equalToSuperview()
+            $0.width.equalTo(2)
+        }
+        horizontalCenterView.snp.makeConstraints {
+            $0.centerY.horizontalEdges.equalToSuperview()
+            $0.height.equalTo(2)
+        }
+
         reloadButton.addInteraction(reloadContextMenu)
         calendarView.contentView.addInteraction(calendarContextMenu)
     }
@@ -213,12 +237,20 @@ class ViewController: UIViewController {
         }
         calendarView.isEndDragging = { [weak self] in
             guard let self else { return }
+            verticalCenterView.isHidden = true
+            horizontalCenterView.isHidden = true
             if !isDoublePreview {
                 isPreview = false
             }
         }
         calendarView.isNeedToPresentColorPicker = { [weak self] picker in
             self?.present(picker, animated: true)
+        }
+        calendarView.isNeedToShowVertical = { [weak self] show in
+            self?.verticalCenterView.isHidden = !show
+        }
+        calendarView.isNeedToShowHorizontal = { [weak self] show in
+            self?.horizontalCenterView.isHidden = !show
         }
     }
 
