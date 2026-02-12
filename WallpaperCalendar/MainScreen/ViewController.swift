@@ -258,10 +258,7 @@ class ViewController: UIViewController {
     private func buildWallpaper() -> UIImage {
         var views = viewsToHide
         views.append(previewButton)
-        views.forEach {
-            $0.alpha = 0
-            $0.isHidden = true
-        }
+        views.forEach { $0.alpha = 0 }
         view.layoutIfNeeded()
 
         let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
@@ -272,7 +269,6 @@ class ViewController: UIViewController {
         UIView.animate(withDuration: 1.2, delay: 2) {
             views.forEach { $0.alpha = 1 }
         }
-        views.forEach { $0.isHidden = false }
         return image
     }
 
