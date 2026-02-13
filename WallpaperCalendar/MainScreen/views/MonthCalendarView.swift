@@ -53,7 +53,7 @@ final class MonthCalendarView: UIView {
             visualEffectView.isHidden = material == .shade
             alphaView.isHidden = material != .shade
             transparencySlider.isHidden = material != .shade
-            colorStackView.isHidden = material != .shade
+            colorButtonsView.isHidden = material != .shade
             pickerButton.isHidden = material != .shade
 
             let oldAppearance = appearance
@@ -73,7 +73,7 @@ final class MonthCalendarView: UIView {
         rightButton,
         transparencySlider,
         sizeView,
-        colorStackView,
+        colorButtonsView,
         pickerButton
     ]
 
@@ -110,7 +110,7 @@ final class MonthCalendarView: UIView {
     private var alphaView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
-        view.layer.borderWidth = 2
+        view.layer.borderWidth = 1.33
         view.layer.borderColor = UIColor.white.withAlphaComponent(0.7).cgColor
         view.layer.masksToBounds = true
         view.clipsToBounds = true
@@ -171,24 +171,7 @@ final class MonthCalendarView: UIView {
         return view
     }()
 
-    private lazy var colorStackView: UIStackView = {
-        let stack = UIStackView()
-        for (index, color) in colors.enumerated() {
-            let button = UIButton()
-            button.backgroundColor = color
-            button.tag = index
-            button.layer.cornerRadius = 3
-            button.layer.borderWidth = 0.33
-            button.layer.borderColor = UIColor.black.cgColor
-            button.addTarget(self, action: #selector(colorButtonTap(_:)), for: .touchUpInside)
-            stack.addArrangedSubview(button)
-        }
-        stack.spacing = 4
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.isHidden = true
-        return stack
-    }()
+    private let colorButtonsView = ColorButtonsView()
 
     private lazy var pickerButton: UIButton = {
         let button = UIButton()
@@ -215,7 +198,6 @@ final class MonthCalendarView: UIView {
         String(localized: "weekday.sa"),
         String(localized: "weekday.su")
     ]
-    private let colors: [UIColor] = [.lightCalendar, .darkCalendar, .grayCalendar, .greenCalendar, .blueCalendar, .pinkCalendar, .yellowCalendar]
 
     // MARK: - Initialization
     init(with configuration: CalendarConfiguration) {
@@ -293,7 +275,7 @@ final class MonthCalendarView: UIView {
             .withAlphaComponent(configuration.backgroundAlpha)
 
         contentView.addSubview(mainStackView)
-        addSubviews(leftButton, rightButton, transparencySlider, sizeView, colorStackView, pickerButton)
+        addSubviews(leftButton, rightButton, transparencySlider, sizeView, colorButtonsView, pickerButton)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -314,20 +296,22 @@ final class MonthCalendarView: UIView {
             $0.top.trailing.equalToSuperview().inset(4)
             $0.size.equalTo(44)
         }
-        colorStackView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(6)
-            $0.trailing.equalToSuperview().inset(40)
+
+        colorButtonsView.isHidden = true
+        colorButtonsView.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(8)
+            $0.trailing.equalTo(pickerButton.snp.leading).offset(-2)
             $0.bottom.equalTo(self.snp.top).offset(-4)
-            $0.height.equalTo(32)
         }
         pickerButton.snp.makeConstraints {
-            $0.verticalEdges.equalTo(colorStackView)
-            $0.leading.equalTo(colorStackView.snp.trailing).offset(4)
-            $0.size.equalTo(32)
+            $0.verticalEdges.equalTo(colorButtonsView)
+            $0.trailing.equalToSuperview().inset(4)
+            $0.width.equalTo(pickerButton.snp.height)
         }
 
         setupCalendarStructure()
         updateCalendar()
+        bindColorButtonsView()
     }
 
     private func reloadCalendar() {
@@ -507,11 +491,12 @@ final class MonthCalendarView: UIView {
 
     // MARK: - Actions
 
-    @objc
-    private func colorButtonTap(_ sender: UIButton) {
-        let newColor = colors[sender.tag]
-        configuration.backgroundColor = newColor
-        alphaView.backgroundColor = newColor.withAlphaComponent(configuration.backgroundAlpha)
+    private func bindColorButtonsView() {
+        colorButtonsView.isColorButtonTapped = { [weak self] color in
+            guard let self else { return }
+            configuration.backgroundColor = color
+            alphaView.backgroundColor = color.withAlphaComponent(configuration.backgroundAlpha)
+        }
     }
 
     @objc
@@ -580,7 +565,7 @@ final class MonthCalendarView: UIView {
             isNeedToShowVertical?(newX == centerX)
         case .ended:
             var finalX = min(max(configuration.positionOffset.x + translation.x, 0), maxX)
-            var finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
+            let finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
             if abs(finalX - centerX) < centerThreshold {
                 finalX = centerX
             }
