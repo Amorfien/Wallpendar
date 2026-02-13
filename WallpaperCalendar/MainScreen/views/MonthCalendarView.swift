@@ -66,7 +66,6 @@ final class MonthCalendarView: UIView {
     var isEndDragging: (() -> Void)?
     var isNeedToPresentColorPicker: ((UIColorPickerViewController) -> Void)?
     var isNeedToShowVertical: ((Bool) -> Void)?
-    var isNeedToShowHorizontal: ((Bool) -> Void)?
 
     lazy var viewsToHide: [UIView] = [
         leftButton,
@@ -303,7 +302,7 @@ final class MonthCalendarView: UIView {
             $0.width.equalToSuperview().inset(28)
         }
         sizeView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(12)
+            $0.trailing.bottom.equalToSuperview().offset(11)
             $0.size.equalTo(34)
         }
         leftButton.snp.makeConstraints {
@@ -552,7 +551,6 @@ final class MonthCalendarView: UIView {
         let translation = gesture.translation(in: superview)
         let dumpRate = 7.0
         let centerX = (R.Device.screenWidth / 2) - (configuration.size.width / 2)
-        let centerY = (R.Device.screenHeight / 2) - (configuration.size.height / 2)
         let centerThreshold = 6.0
         let maxX = R.Device.screenWidth - configuration.size.width
         let maxY = R.Device.screenHeight - configuration.size.height
@@ -570,8 +568,6 @@ final class MonthCalendarView: UIView {
             newY = newY / dumpRate
         } else if newY > maxY {
             newY = maxY + (newY - maxY) / dumpRate
-        } else if abs(newY - centerY) < centerThreshold {
-            newY = centerY
         }
 
         switch gesture.state {
@@ -581,15 +577,11 @@ final class MonthCalendarView: UIView {
             isChangeXPosition?(newX)
             isChangeYPosition?(newY)
             isNeedToShowVertical?(newX == centerX)
-            isNeedToShowHorizontal?(newY == centerY)
         case .ended:
             var finalX = min(max(configuration.positionOffset.x + translation.x, 0), maxX)
             var finalY = min(max(configuration.positionOffset.y + translation.y, 0), maxY)
             if abs(finalX - centerX) < centerThreshold {
                 finalX = centerX
-            }
-            if abs(finalY - centerY) < centerThreshold {
-                finalY = centerY
             }
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.7) {
                 self.isChangeXPosition?(finalX)

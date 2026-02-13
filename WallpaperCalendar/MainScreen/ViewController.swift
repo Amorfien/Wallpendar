@@ -249,9 +249,6 @@ class ViewController: UIViewController {
         calendarView.isNeedToShowVertical = { [weak self] show in
             self?.verticalCenterView.isHidden = !show
         }
-        calendarView.isNeedToShowHorizontal = { [weak self] show in
-            self?.horizontalCenterView.isHidden = !show
-        }
     }
 
     // MARK: - Private Methods
