@@ -38,6 +38,7 @@ final class MonthCalendarView: UIView {
 
             guard appearance != oldValue else { return }
             self.configuration.dayTextColor = appearance == .light ? .black : .white
+            self.configuration.weekendTextColor = appearance == .light ? .weekendDark : .weekendLight
             self.configuration.monthHeaderColor = appearance == .light ? .black : .white
             self.configuration.weekdayHeaderColor = appearance == .light ? .darkText : .lightGray
             updateDayColors()

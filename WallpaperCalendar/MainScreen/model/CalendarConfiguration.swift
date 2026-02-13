@@ -24,7 +24,7 @@ struct CalendarConfiguration {
          backgroundColor: UIColor = .blueCalendar,
          backgroundAlpha: CGFloat = 0.75,
          dayTextColor: UIColor = .white,
-         weekendTextColor: UIColor = .weekend,
+         weekendTextColor: UIColor = .weekendLight,
          weekdayHeaderColor: UIColor = .lightGray,
          monthHeaderColor: UIColor = .white.withAlphaComponent(0.85),
          dayFontSize: CGFloat = 16,
