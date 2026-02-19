@@ -285,7 +285,7 @@ final class MonthCalendarView: UIView {
             $0.width.equalToSuperview().inset(28)
         }
         sizeView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(11)
+            $0.trailing.bottom.equalToSuperview().offset(12)
             $0.size.equalTo(34)
         }
         leftButton.snp.makeConstraints {

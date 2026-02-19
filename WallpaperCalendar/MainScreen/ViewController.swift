@@ -157,18 +157,23 @@ class ViewController: UIViewController {
                 height: R.Device.screenScale * R.Device.screenHeight,
                 mode: imageMode) { [weak self] result in
                     DispatchQueue.main.async { [weak self] in
-                        self?.activityIndicator.stopAnimating()
-                        self?.viewsToHide.compactMap { $0 as? UIControl }.forEach { $0.isEnabled = true }
+                        guard let self else { return }
+                        activityIndicator.stopAnimating()
+                        viewsToHide.compactMap { $0 as? UIControl }.forEach { $0.isEnabled = true }
                         switch result {
                         case .success(let data):
-                            self?.backgroundImageView.image = UIImage(data: data)
+                            backgroundImageView.image = UIImage(data: data)
                         case .failure(let error):
                             print(error.localizedDescription)
                             var newImage: UIImage
                             repeat {
-                                newImage = R.Img.initialImages.randomElement() ?? UIImage()
-                            } while newImage.hash == self?.backgroundImageView.image?.hash
-                            self?.backgroundImageView.image = newImage
+                                if imageMode == .standart {
+                                    newImage = R.Img.initialImages.randomElement() ?? UIImage()
+                                } else {
+                                    newImage = R.Img.grayScaleImages.randomElement() ?? UIImage()
+                                }
+                            } while newImage.hash == backgroundImageView.image?.hash
+                            backgroundImageView.image = newImage
                         }
                     }
                 }
@@ -327,7 +332,6 @@ extension ViewController: UIContextMenuInteractionDelegate {
                         self.imageMode = mode
                         self.reloadButton.isButtonTapped?()
                     }
-                    if mode == .blur { action.attributes = .disabled }
                     childrens.append(action)
                 }
             } else {
