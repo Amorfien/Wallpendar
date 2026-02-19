@@ -134,14 +134,14 @@ final class MonthCalendarView: UIView {
     }()
 
     private lazy var leftButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton()
         button.setImage(.arrowshapeLeft, for: .normal)
         button.tag = -1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
         return button
     }()
     private lazy var rightButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton()
         button.setImage(.arrowshapeRight, for: .normal)
         button.tag = 1
         button.addTarget(self, action: #selector(stepperValueChanged(_:)), for: .touchUpInside)
@@ -161,7 +161,7 @@ final class MonthCalendarView: UIView {
     }()
     private lazy var sizeView: UIButton = {
         let view = UIButton()
-        view.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right"), for: .normal)
+        view.setBackgroundImage(.triarrows, for: .normal)
         view.addGestureRecognizer(
             UIPanGestureRecognizer(
                 target: self,
@@ -289,11 +289,11 @@ final class MonthCalendarView: UIView {
             $0.size.equalTo(34)
         }
         leftButton.snp.makeConstraints {
-            $0.top.leading.equalToSuperview().offset(4)
+            $0.top.leading.equalToSuperview().offset(6)
             $0.size.equalTo(44)
         }
         rightButton.snp.makeConstraints {
-            $0.top.trailing.equalToSuperview().inset(4)
+            $0.top.trailing.equalToSuperview().inset(6)
             $0.size.equalTo(44)
         }
 
