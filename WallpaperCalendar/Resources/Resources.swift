@@ -18,15 +18,13 @@ enum R {
 
     enum Device {
         static var screenHeight: CGFloat {
-//            UIScreen.current?.bounds.height ?? 844
-            UIScreen.main.bounds.height
+            UIScreen.currentHeight
         }
         static var screenWidth: CGFloat {
-//            UIScreen.current?.bounds.width ?? 390
-            UIScreen.main.bounds.width
+            UIScreen.currentWidth
         }
         static var screenScale: CGFloat {
-            UIScreen.current?.scale ?? 3
+            UIScreen.currentScale
         }
     }
 }
