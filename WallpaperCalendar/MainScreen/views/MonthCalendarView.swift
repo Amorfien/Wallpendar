@@ -72,7 +72,7 @@ final class MonthCalendarView: UIView {
         leftButton,
         rightButton,
         transparencySlider,
-        sizeView,
+        handleView,
         colorButtonsView,
         pickerButton
     ]
@@ -159,17 +159,8 @@ final class MonthCalendarView: UIView {
         slider.isHidden = true
         return slider
     }()
-    private lazy var sizeView: UIButton = {
-        let view = UIButton()
-        view.setBackgroundImage(.triarrows, for: .normal)
-        view.addGestureRecognizer(
-            UIPanGestureRecognizer(
-                target: self,
-                action: #selector(sizePan(_:))
-            )
-        )
-        return view
-    }()
+
+    private let handleView = ResizeHandleView()
 
     private let colorButtonsView = ColorButtonsView()
 
@@ -255,6 +246,9 @@ final class MonthCalendarView: UIView {
 
     // MARK: - SetupUI
     private func setupView() {
+        handleView.addGestureRecognizer(UIPanGestureRecognizer(target: self,
+                                                               action: #selector(sizePan(_:))))
+
         self.snp.makeConstraints {
             $0.size.equalTo(configuration.size)
         }
@@ -275,7 +269,7 @@ final class MonthCalendarView: UIView {
             .withAlphaComponent(configuration.backgroundAlpha)
 
         contentView.addSubview(mainStackView)
-        addSubviews(leftButton, rightButton, transparencySlider, sizeView, colorButtonsView, pickerButton)
+        addSubviews(leftButton, rightButton, transparencySlider, handleView, colorButtonsView, pickerButton)
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
@@ -284,9 +278,9 @@ final class MonthCalendarView: UIView {
             $0.top.equalTo(self.snp.bottom).inset((transparencySlider.thumbImage(for: .normal)?.size.height ?? 0) / 2 + 4)
             $0.width.equalToSuperview().inset(28)
         }
-        sizeView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(12)
-            $0.size.equalTo(34)
+        handleView.snp.makeConstraints {
+            $0.trailing.bottom.equalToSuperview().offset(1)
+            $0.size.equalTo(28)
         }
         leftButton.snp.makeConstraints {
             $0.top.leading.equalToSuperview().offset(6)
