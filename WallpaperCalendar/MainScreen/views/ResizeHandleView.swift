@@ -25,14 +25,19 @@ final class ResizeHandleView: UIView {
         super.init(coder: coder)
         setup()
     }
-    
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let hitInset: CGFloat = -14
+        let largerBounds = bounds.insetBy(dx: hitInset, dy: hitInset)
+        return largerBounds.contains(point)
+    }
+
     private func setup() {
         isUserInteractionEnabled = true
         backgroundColor = .clear
 
-        shapeLayer.fillColor = UIColor.gray.withAlphaComponent(0.6).cgColor
+        shapeLayer.fillColor = UIColor.darkGray.withAlphaComponent(0.5).cgColor
         layer.addSublayer(shapeLayer)
-        print(frame)
     }
     
     override func layoutSubviews() {

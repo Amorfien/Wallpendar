@@ -211,7 +211,8 @@ final class MonthCalendarView: UIView {
     }
 
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let largerBounds = CGRect(x: 0, y: -36, width: bounds.width + 14, height: bounds.height + 14 + 36)
+        let largerBounds = CGRect(x: 0, y: -36, width: bounds.width + 14,
+                                  height: bounds.height + 14 + 36)
         return largerBounds.contains(point)
     }
 
@@ -279,7 +280,7 @@ final class MonthCalendarView: UIView {
             $0.width.equalToSuperview().inset(28)
         }
         handleView.snp.makeConstraints {
-            $0.trailing.bottom.equalToSuperview().offset(1)
+            $0.trailing.bottom.equalToSuperview().offset(-0.5)
             $0.size.equalTo(28)
         }
         leftButton.snp.makeConstraints {

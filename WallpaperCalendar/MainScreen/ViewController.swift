@@ -116,10 +116,10 @@ class ViewController: UIViewController {
             $0.top.equalToSuperview().offset(startCalendarPositionOffset.y)
         }
         reloadButton.snp.makeConstraints {
-            $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(6)
+            $0.top.leading.equalTo(view.safeAreaLayoutGuide).inset(8)
         }
         previewButton.snp.makeConstraints {
-            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(6)
+            $0.top.trailing.equalTo(view.safeAreaLayoutGuide).inset(8)
         }
         galleryButton.snp.makeConstraints {
             $0.trailing.equalTo(previewButton)
