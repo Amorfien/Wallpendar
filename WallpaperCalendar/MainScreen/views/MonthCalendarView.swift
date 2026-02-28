@@ -5,7 +5,6 @@
 //  Created by Pavel Grigorev on 05.02.2026.
 //
 
-
 import UIKit
 import SnapKit
 

@@ -5,7 +5,6 @@
 //  Created by Pavel Grigorev on 27.02.2026.
 //
 
-
 import UIKit
 
 final class ResizeHandleView: UIView {
@@ -35,7 +34,6 @@ final class ResizeHandleView: UIView {
     private func setup() {
         isUserInteractionEnabled = true
         backgroundColor = .clear
-
         shapeLayer.fillColor = UIColor.darkGray.withAlphaComponent(0.5).cgColor
         layer.addSublayer(shapeLayer)
     }
@@ -49,9 +47,7 @@ final class ResizeHandleView: UIView {
     }
     
     private func makePath() -> UIBezierPath {
-        
         let path = UIBezierPath()
-        
         let R = cornerRadius
         let t = thickness
 
@@ -59,7 +55,6 @@ final class ResizeHandleView: UIView {
             x: bounds.width - R,
             y: bounds.height - R
         )
-        
         // Внешняя дуга
         path.addArc(
             withCenter: center,
@@ -74,7 +69,6 @@ final class ResizeHandleView: UIView {
             x: center.x,
             y: center.y + R
         )
-
         path.addArc(
             withCenter: bottomCapCenter,
             radius: t / 2,
@@ -97,7 +91,6 @@ final class ResizeHandleView: UIView {
             x: center.x + R,
             y: center.y
         )
-
         path.addArc(
             withCenter: rightCapCenter,
             radius: t / 2,
@@ -107,7 +100,6 @@ final class ResizeHandleView: UIView {
         )
 
         path.close()
-
         return path
     }
 }
