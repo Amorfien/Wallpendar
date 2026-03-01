@@ -390,6 +390,11 @@ extension ViewController: UIContextMenuInteractionDelegate {
                     self.calendarView.changeMaterial(to: .glass)
                 }
 
+                if #unavailable(iOS 26.0) {
+                    glass.attributes = .disabled
+                    glass.title += " (iOS 26+)"
+                }
+
                 let primaryActions = UIMenu(title: String(localized: "calendar.appearance.title"), options: .displayInline, children: [
                     light, dark
                 ])

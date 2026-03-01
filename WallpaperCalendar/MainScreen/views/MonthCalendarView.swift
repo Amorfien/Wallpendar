@@ -32,7 +32,10 @@ final class MonthCalendarView: UIView {
                 ? UIColor.black.withAlphaComponent(0.5).cgColor
                 : UIColor.white.withAlphaComponent(0.7).cgColor
             case .blur: visualEffectView.effect = appearance == .light ? lightBlur : darkBlur
-            case .glass: visualEffectView.effect = clearGlass
+            case .glass:
+                if #available(iOS 26.0, *) {
+                    visualEffectView.effect = clearGlass
+                }
             }
 
             guard appearance != oldValue else { return }
@@ -98,7 +101,8 @@ final class MonthCalendarView: UIView {
 
     private let darkBlur = UIBlurEffect(style: .systemThinMaterialDark)
     private let lightBlur = UIBlurEffect(style: .systemThinMaterialLight)
-    private let clearGlass = UIGlassEffect(style: .clear)
+
+    private let clearGlass: UIVisualEffect
 
     private lazy var visualEffectView: UIVisualEffectView = {
         let view = UIVisualEffectView(effect: darkBlur)
@@ -192,6 +196,11 @@ final class MonthCalendarView: UIView {
     // MARK: - Initialization
     init(with configuration: CalendarConfiguration) {
         self.configuration = configuration
+        if #available(iOS 26.0, *) {
+            self.clearGlass = UIGlassEffect(style: .clear)
+        } else {
+            self.clearGlass = UIBlurEffect(style: .systemUltraThinMaterial)
+        }
         super.init(frame: .zero)
         setupView()
 
@@ -205,6 +214,7 @@ final class MonthCalendarView: UIView {
     
     required init?(coder: NSCoder) {
         self.configuration = CalendarConfiguration(size: .zero, positionOffset: .zero)
+        self.clearGlass = UIBlurEffect(style: .systemUltraThinMaterial)
         super.init(coder: coder)
         setupView()
     }
