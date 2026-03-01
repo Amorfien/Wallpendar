@@ -81,13 +81,6 @@ class ViewController: UIViewController {
         return view
     }()
 
-    private let horizontalCenterView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .yellow.withAlphaComponent(0.7)
-        view.isHidden = true
-        return view
-    }()
-
     private lazy var onboardingView = OnboardingView()
 
     override var prefersStatusBarHidden: Bool {
@@ -107,7 +100,8 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if !isOnboardingCompleted {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            viewsToHide.append(onboardingView)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
                 self?.onboardingView.startAnimation()
             }
         }
@@ -122,7 +116,6 @@ class ViewController: UIViewController {
         }
         view.addSubviews(backgroundImageView,
                          verticalCenterView,
-                         horizontalCenterView,
                          calendarView,
                          reloadButton,
                          galleryButton,
@@ -166,10 +159,6 @@ class ViewController: UIViewController {
         verticalCenterView.snp.makeConstraints {
             $0.centerX.verticalEdges.equalToSuperview()
             $0.width.equalTo(2)
-        }
-        horizontalCenterView.snp.makeConstraints {
-            $0.centerY.horizontalEdges.equalToSuperview()
-            $0.height.equalTo(2)
         }
 
         reloadButton.addInteraction(reloadContextMenu)
@@ -274,7 +263,6 @@ class ViewController: UIViewController {
         calendarView.isEndDragging = { [weak self] in
             guard let self else { return }
             verticalCenterView.isHidden = true
-            horizontalCenterView.isHidden = true
             if !isDoublePreview {
                 isPreview = false
             }
@@ -355,7 +343,6 @@ extension ViewController: UIContextMenuInteractionDelegate {
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(actionProvider: { [weak self] _ in
             guard let self else { return nil }
-            isOnboardingCompleted = true
             var childrens: [UIMenuElement] = []
 
             if interaction.view is SquareButton {
@@ -367,6 +354,11 @@ extension ViewController: UIContextMenuInteractionDelegate {
                     childrens.append(action)
                 }
             } else {
+                if !isOnboardingCompleted {
+                    isOnboardingCompleted = true
+                    onboardingView.removeFromSuperview()
+                }
+                
                 let light = UIAction(title: String(localized: "calendar.appearance.dark"),
                                      image: UIImage(systemName: "character.square"),
                                      state: calendarView.appearance == .light ? .on : .off) { _ in
