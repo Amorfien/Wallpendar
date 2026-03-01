@@ -283,9 +283,14 @@ final class MonthCalendarView: UIView {
         mainStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }
+        var sliderVerticalInset: CGFloat = 0
+        if #available(iOS 26.0, *) {
+            sliderVerticalInset = 4
+        }
         transparencySlider.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalTo(self.snp.bottom).inset((transparencySlider.thumbImage(for: .normal)?.size.height ?? 0) / 2 + 4)
+            $0.top.equalTo(self.snp.bottom)
+                .inset((transparencySlider.thumbImage(for: .normal)?.size.height ?? 0) / 2 + sliderVerticalInset)
             $0.width.equalToSuperview().inset(28)
         }
         handleView.snp.makeConstraints {

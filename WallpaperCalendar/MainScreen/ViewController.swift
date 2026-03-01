@@ -117,6 +117,9 @@ class ViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .darkGray
         activityIndicator.color = .white
+        if #unavailable(iOS 18.0) {
+            reloadButton.setImage(UIImage(systemName: "repeat"), for: .normal)
+        }
         view.addSubviews(backgroundImageView,
                          verticalCenterView,
                          horizontalCenterView,
@@ -393,6 +396,11 @@ extension ViewController: UIContextMenuInteractionDelegate {
                 if #unavailable(iOS 26.0) {
                     glass.attributes = .disabled
                     glass.title += " (iOS 26+)"
+                    blur.image = UIImage(systemName: "aqi.low")
+                }
+                if #unavailable(iOS 18.0) {
+                    light.image = UIImage(systemName: "square.text.square")
+                    dark.image = UIImage(systemName: "square.text.square.fill")
                 }
 
                 let primaryActions = UIMenu(title: String(localized: "calendar.appearance.title"), options: .displayInline, children: [
