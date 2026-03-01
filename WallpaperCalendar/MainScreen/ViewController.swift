@@ -101,7 +101,7 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         if !isOnboardingCompleted {
             viewsToHide.append(onboardingView)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
                 self?.onboardingView.startAnimation()
             }
         }

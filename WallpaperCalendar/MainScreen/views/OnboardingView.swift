@@ -10,8 +10,9 @@ import SnapKit
 
 final class OnboardingView: UIView {
 
-    private let imageSize = 200.0
+    private let imageSize = 180.0
     private let startImage = UIImage(systemName: "rectangle.and.hand.point.up.left.filled")
+    private let secondImage = UIImage(systemName: "rectangle.and.hand.point.up.left.fill")
 
     private lazy var fingerView: UIImageView = {
         let view = UIImageView(image: startImage)
@@ -39,9 +40,13 @@ final class OnboardingView: UIView {
     }
 
     func startAnimation() {
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
-            self.fingerView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        }, completion: nil)
+        fingerView.image = secondImage
+        UIView.animate(withDuration: 1.0, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: { [weak self] in
+            self?.fingerView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        } , completion: { [weak self] _ in
+            self?.fingerView.transform = .identity
+            self?.fingerView.image = self?.startImage
+        })
     }
 
     private func setupUI() {
@@ -52,7 +57,7 @@ final class OnboardingView: UIView {
         self.addSubviews(fingerView, hintLabel)
         fingerView.snp.makeConstraints {
             $0.top.equalToSuperview()
-            $0.centerX.equalToSuperview().offset(4)
+            $0.centerX.equalToSuperview().offset(imageSize / 11)
             $0.size.equalTo(imageSize)
         }
         hintLabel.snp.makeConstraints {
