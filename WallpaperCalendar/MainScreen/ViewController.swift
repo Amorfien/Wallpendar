@@ -11,6 +11,14 @@ import PhotosUI
 
 class ViewController: UIViewController {
 
+    private var isOnboardingCompleted: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "isOnboardingCompleted")
+        } set {
+            UserDefaults.standard.set(newValue, forKey: "isOnboardingCompleted")
+        }
+    }
+
     private lazy var isPreview: Bool = false {
         didSet {
             setNeedsStatusBarAppearanceUpdate()
@@ -80,6 +88,8 @@ class ViewController: UIViewController {
         return view
     }()
 
+    private lazy var onboardingView = OnboardingView()
+
     override var prefersStatusBarHidden: Bool {
         return isPreview
     }
@@ -92,6 +102,15 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         buttonsBinding()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if !isOnboardingCompleted {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.onboardingView.startAnimation()
+            }
+        }
     }
 
     // MARK: - Setup UI
@@ -107,6 +126,13 @@ class ViewController: UIViewController {
                          saveButton,
                          previewButton,
                          activityIndicator)
+        if !isOnboardingCompleted {
+            view.addSubview(onboardingView)
+            onboardingView.snp.makeConstraints {
+                $0.centerX.equalTo(calendarView)
+                $0.centerY.equalTo(calendarView.snp.bottom)
+            }
+        }
 
         backgroundImageView.snp.makeConstraints {
             $0.edges.equalToSuperview()
@@ -326,6 +352,7 @@ extension ViewController: UIContextMenuInteractionDelegate {
                                 configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(actionProvider: { [weak self] _ in
             guard let self else { return nil }
+            isOnboardingCompleted = true
             var childrens: [UIMenuElement] = []
 
             if interaction.view is SquareButton {
