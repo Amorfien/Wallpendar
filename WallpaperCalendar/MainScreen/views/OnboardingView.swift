@@ -39,13 +39,14 @@ final class OnboardingView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func startAnimation() {
+    func startAnimation(completion: (() -> Void)? = nil) {
         fingerView.image = secondImage
-        UIView.animate(withDuration: 1.0, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: { [weak self] in
+        UIView.animate(withDuration: 1.0, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 10.5, options: [.curveEaseInOut, .autoreverse], animations: { [weak self] in
             self?.fingerView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         } , completion: { [weak self] _ in
             self?.fingerView.transform = .identity
             self?.fingerView.image = self?.startImage
+            completion?()
         })
     }
 

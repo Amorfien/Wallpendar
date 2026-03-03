@@ -242,12 +242,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hold down\nto\nadjust"
+            "value" : "Long press\nfor settings"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Зажмите\nдля\nнастройки"
           }
         }

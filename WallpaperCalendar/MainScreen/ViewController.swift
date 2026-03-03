@@ -100,9 +100,14 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if !isOnboardingCompleted {
+            UIView.animate(withDuration: 0.5, delay: 1.0) { [weak self] in
+                self?.onboardingView.alpha = 1.0
+            }
             viewsToHide.append(onboardingView)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
-                self?.onboardingView.startAnimation()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                self?.onboardingView.startAnimation() { [weak self] in
+                    self?.startRepeating()
+                }
             }
         }
     }
@@ -123,6 +128,7 @@ class ViewController: UIViewController {
                          previewButton,
                          activityIndicator)
         if !isOnboardingCompleted {
+            onboardingView.alpha = 0
             view.addSubview(onboardingView)
             onboardingView.snp.makeConstraints {
                 $0.centerX.equalTo(calendarView)
@@ -291,6 +297,17 @@ class ViewController: UIViewController {
             views.forEach { $0.alpha = 1 }
         }
         return image
+    }
+
+    /// Onboarding
+    private func startRepeating() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 7...12)) { [weak self] in
+            guard let self else { return }
+            onboardingView.startAnimation()
+            if !isOnboardingCompleted {
+                startRepeating()
+            }
+        }
     }
 
     private func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
